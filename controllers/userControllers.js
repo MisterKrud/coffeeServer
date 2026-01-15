@@ -33,11 +33,6 @@ const createUser = [
     const user = await db.createUser(newUser.email, newUser.name, hashedPassword)
     req.user = await db.getUserById(user.id)
 
-    //  req.login(newUser, (err) => {
-    //   if (err) return next(err);
-    //   return res.status(400).json({error: 'Error unable to create new user'});
-    // });
-
     next()
 }
 ]
