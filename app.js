@@ -24,6 +24,15 @@ app.use('/users', userRouter);
 app.use('/auth', authRouter)
 app.use('/', router);
 
+app.use((err, req, res, next) => {
+  console.error(err); // yes, log it
+
+  const status = err.status || 500;
+
+  res.status(status).json({
+    error: err.message || 'Internal server error',
+  });
+});
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, error => {
