@@ -53,6 +53,35 @@ async function getUsersLastOrder(userId){
     return orderItems
 }
 
+async function getAllUserOrders(userId){
+    const userOrders = await prisma.order.findMany({
+      
+       
+        where: {
+            userId: userId
+        },
+        orderBy: {
+            id: 'desc',
+        },
+        include: {
+            items: true
+        }
+    })
+
+    return userOrders
+}
+
+async function updateUserPassword(userId, newPassword){
+    await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            password: newPassword
+        }
+    })
+}
+
 async function deleteLastOrder(userId){
     const lastOrder = await prisma.order.findFirst({
         where: {
@@ -121,10 +150,13 @@ async function submitCart(userId, cartItems) {
 }
 
 module.exports = {
+    createUser,
+    updateUserPassword,
     getUserById,
     getUserByEmail,
     getAllUsers, 
     submitCart,
     getUsersLastOrder,
+    getAllUserOrders,
     deleteLastOrder
 }

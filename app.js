@@ -3,10 +3,11 @@ const express = require('express');
 const passport = require('passport');//needed?
 const path = require('node:path');
 const prisma = require('./lib/prisma'); //needed?
+const jwt = require('jsonwebtoken')
 const router = require('./routes/router');
 const userRouter = require('./routes/userRouter');
-const cors = require('cors')
-;
+const authRouter = require('./routes/authRouter')
+const cors = require('cors');
 const app = express();
 const assestsPath = path.join(__dirname, 'public');
 
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
     next()
 });
 app.use('/users', userRouter);
+app.use('/auth', authRouter)
 app.use('/', router);
 
 

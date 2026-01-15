@@ -1,30 +1,35 @@
+require('dotenv').config();
 const { Router } = require('express');
 const router = Router();
+const jwt = require('jsonwebtoken')
 const db = require('../db/queries');
 const passport = require('../config/passport');
 const userControllers = require('../controllers/userControllers')
+const authControllers = require('../controllers/authControllers')
 const { appendFile } = require('node:fs');
 
 
 
-router.get('/', userControllers.getAllUsers, (req, res) => {
-    return res.send(req.allUsers)
-})
 
-router.get('/:userId', userControllers.getUserById, (req, res) => {
+
+router.get('/', authControllers.authenticateJWT,userControllers.getUserById, (req, res) => {
     return res.send(req.targetUser)
 })
 
-router.get('/:userId/lastOrder', userControllers.getUsersLastOrder, (req, res) => {
+router.get('/lastOrder', authControllers.authenticateJWT, userControllers.getUsersLastOrder, (req, res) => {
     return res.json(req.lastOrder)
 })
 
-router.delete('/:userId/deleteLastOrder', userControllers.deleteLastOrder, (req, res) => {
+router.get('/allOrders',authControllers.authenticateJWT, userControllers.getAllUserOrders, (req, res) => {
+    return res.json(req.userOrders)
+})
+
+router.delete('/deleteLastOrder', authControllers.authenticateJWT,userControllers.deleteLastOrder, (req, res) => {
     return res.json(req.lastOrder)
 })
 
 
-router.post('/:userId/newOrder', userControllers.submitCart, (req,res) => {
+router.post('/newOrder', authControllers.authenticateJWT, userControllers.submitCart, (req, res) => {
     return res.send(req.cart)
 })
 module.exports = router;
