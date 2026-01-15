@@ -1,0 +1,31 @@
+{
+  "name": "coffeeserver",
+  "version": "1.0.0",
+  "description": "Back end for coffee app",
+  "homepage": "https://github.com/MisterKrud/coffeeServer#readme",
+  "bugs": {
+    "url": "https://github.com/MisterKrud/coffeeServer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MisterKrud/coffeeServer.git"
+  },
+  "license": "ISC",
+  "author": "Allyn Smith",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "NODE_ENV=development node --watch app.js",
+    "start": "NODE_ENV=production node app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
+  }
+}

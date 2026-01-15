@@ -1,0 +1,47 @@
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+
+  // future-proofing for Google/Microsoft/Facebook auth
+  googleId     String?  @unique
+  microsoftId  String?  @unique
+  facebookId   String?  @unique
+
+  orders       Order[]
+}
+
+model Order {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  createdAt DateTime  @default(now())
+  total     Decimal   @db.Decimal(10, 2)
+
+  user      User      @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+
+  itemName   String          // "Flat White", "Ham & cheese croissant"
+  size       String?         // "Small", "Medium", "Large", null for food
+  unitPrice  Decimal         @db.Decimal(10, 2)
+  quantity   Int             @default(1)
+
+  notes      String?         // "extra hot", "skim milk", "not toasted"
+  lineTotal  Decimal         @db.Decimal(10, 2)
+
+  order      Order           @relation(fields: [orderId], references: [id])
+}
