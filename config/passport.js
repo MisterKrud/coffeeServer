@@ -5,9 +5,9 @@ const db = require('../db/queries')
 const prisma = require('../lib/prisma')
 
 passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy(async (email, password, done) => {
         try {
-            const user = await db.getUserByUsername(username);
+            const user = await db.getUserByEmail(email);
             console.log('User at login', user)
                 if(!user) {
                     return done(null, false, {message: 'No such user'})
