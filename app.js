@@ -7,10 +7,12 @@ const jwt = require('jsonwebtoken')
 const router = require('./routes/router');
 const userRouter = require('./routes/userRouter');
 const authRouter = require('./routes/authRouter')
+const adminRouter = require('./routes/adminRouter')
 const cors = require('cors');
 const app = express();
 const assestsPath = path.join(__dirname, 'public');
-
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
 app.use(express.static(assestsPath));
 app.use(express.urlencoded({extended: false}));
 app.use(express.json())
@@ -22,6 +24,7 @@ app.use((req, res, next) => {
 });
 app.use('/users', userRouter);
 app.use('/auth', authRouter)
+app.use('/admin', adminRouter)
 app.use('/', router);
 
 app.use((err, req, res, next) => {

@@ -26,7 +26,7 @@ model Order {
   userId    Int
   createdAt DateTime  @default(now())
   total     Decimal   @db.Decimal(10, 2)
-
+  notes      String?  
   user      User      @relation(fields: [userId], references: [id])
   items     OrderItem[]
 }
@@ -39,12 +39,16 @@ model OrderItem {
   size       String?         // "Small", "Medium", "Large", null for food
   milk       String?
   syrups     String?
+  tea        String?
+  extras     String?
+  sauce      String?
+  topping    String?
   modifiers  String?
   sugar      Int?
   unitPrice  Decimal         @db.Decimal(10, 2)
   quantity   Int             @default(1)
 
-  notes      String?         // "extra hot", "skim milk", "not toasted"
+         // "extra hot", "skim milk", "not toasted"
   lineTotal  Decimal         @db.Decimal(10, 2)
 
   order      Order           @relation(fields: [orderId], references: [id])

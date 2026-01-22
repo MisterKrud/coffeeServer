@@ -1,4 +1,7 @@
+
 const prisma = require("../lib/prisma.js")
+const { startOfDay, endOfDay } = require("date-fns");
+const {  utcToZonedTime } = require("date-fns-tz");
 
 async function createUser(email, name, password){
     const user = await prisma.user.create({
@@ -106,25 +109,31 @@ async function deleteLastOrder(userId){
 
 }
 
-async function submitCart(userId, cartItems, total) {
+async function submitCart(userId, cartItems, total, notes) {
   const newOrder = await prisma.order.create({
     data: {
       userId,
+      notes: notes,
       total: total,
       items: {
         create: cartItems.map(item => ({
           itemName: item.productName,
           size: item.size || null,
-          milk: item.milk,
-          syrups: JSON.stringify(item.syrups), // store as JSON
-          modifiers: JSON.stringify(item.modifiers),
-          sugar: item.sugar,
+          milk: item.milk || null,
+          syrups: JSON.stringify(item.syrups) || null, // store as JSON
+          tea: item.tea || null,
+          extras: JSON.stringify(item.extras) || null,
+          sauce: item.sauce || null,
+          topping: item.topping || null,
+          modifiers: JSON.stringify(item.modifiers) || null,
+          sugar: item.sugar || null,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           lineTotal: item.unitPrice * item.quantity,
-          notes: item.notes?.join(", ") || null
+         
         }))
       },
+    
       
     },
     include: { items: true } // so you can attach to req.cart
@@ -133,6 +142,35 @@ async function submitCart(userId, cartItems, total) {
   return newOrder;
 }
 
+async function getTodaysOrders() {
+  const timeZone = 'Australia/Sydney';
+  const now = new Date();
+
+  // Get the local Sydney start/end of day
+  const localStart = startOfDay(now);
+  const localEnd = endOfDay(now);
+
+  // Convert local Sydney times to UTC for querying the DB
+  const start = new Date(localStart.getTime() - (localStart.getTimezoneOffset() * 60000));
+  const end = new Date(localEnd.getTime() - (localEnd.getTimezoneOffset() * 60000));
+
+  const todaysOrders = await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: start,
+        lt: end,
+      },
+    },
+    include: {
+  user: { select: { name: true } },
+  items: true,
+},
+
+  });
+
+  console.log('Todays orders:', todaysOrders);
+  return todaysOrders;
+}
 
 module.exports = {
     createUser,
@@ -143,5 +181,6 @@ module.exports = {
     submitCart,
     getUsersLastOrder,
     getAllUserOrders,
-    deleteLastOrder
+    deleteLastOrder,
+    getTodaysOrders
 }
