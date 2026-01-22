@@ -70,26 +70,17 @@ const getAllUsers = async (req, res, next) => {
 const submitCart = async (req, res, next) => {
     try{
     const userId = Number(req.user.id)
-    const cartItems =  [
-    {
-      itemName: 'Flat White',
-      size: 'Large',
-      unitPrice: 6.1,
-      quantity: 1,
-      lineTotal: 6.1,
-      notes: ['Skim milk', 'Extra hot']
-    },
-    {
-      itemName: 'Chai Latte',
-      size: 'Small',
-      unitPrice: 5.7,
-      quantity: 1,
-      lineTotal: 5.7,
-      notes: []
+    const { items, total } =  req.body
+    console.log('items, total',req.body)
+    if (!Array.isArray(items) || items.length === 0) {
+      const err = new Error("Cart is empty");
+      err.status = 400;
+      console.error(err)
+      return next(err);
     }
-  ]
-    const order = await db.submitCart(userId, cartItems )
+    const order = await db.submitCart(userId, items, total )
     req.cart = order
+    console.log('order', req.cart)
     next()
 } catch(err) {
     next(err)

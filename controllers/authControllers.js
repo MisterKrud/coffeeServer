@@ -72,6 +72,7 @@ const authenticateJWT = (req, res, next) => {
   if (!authHeader) return res.sendStatus(401)
 
   const token = authHeader.split(' ')[1]
+console.log("AUTH HEADER:", authHeader);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
@@ -81,6 +82,7 @@ const authenticateJWT = (req, res, next) => {
   }
 
   req.user = user;
+  console.log('logged user: ', req.user)
   next();
   })
 }

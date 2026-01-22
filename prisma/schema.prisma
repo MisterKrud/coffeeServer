@@ -37,6 +37,10 @@ model OrderItem {
 
   itemName   String          // "Flat White", "Ham & cheese croissant"
   size       String?         // "Small", "Medium", "Large", null for food
+  milk       String?
+  syrups     String?
+  modifiers  String?
+  sugar      Int?
   unitPrice  Decimal         @db.Decimal(10, 2)
   quantity   Int             @default(1)
 

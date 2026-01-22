@@ -88,7 +88,7 @@ async function deleteLastOrder(userId){
             userId: userId
         },
         orderBy: {
-            id: 'desc'
+            id: 'asc'
         }
     })
 
@@ -106,48 +106,33 @@ async function deleteLastOrder(userId){
 
 }
 
-async function submitCart(userId, cartItems) {
-  // cartItems: array of objects, each with item details + modifiers
-  // Example structure:
-//   [
-//     {
-//       itemName: 'Flat White',
-//       size: 'Medium',
-//       unitPrice: 5.8,
-//       quantity: 1,
-//       lineTotal: 5.8,
-//       notes: ['Skim milk', 'Extra hot']
-//     },
-//     {
-//       itemName: 'Ham & Cheese Croissant',
-//       unitPrice: 4.5,
-//       quantity: 1,
-//       lineTotal: 4.5,
-//       notes: ['No mustard']
-//     }
-//   ]
-
-  const total = cartItems.reduce((sum, item) => sum + item.lineTotal, 0)
-
+async function submitCart(userId, cartItems, total) {
   const newOrder = await prisma.order.create({
     data: {
-      userId: userId,
+      userId,
       total: total,
       items: {
         create: cartItems.map(item => ({
-          itemName: item.itemName,
+          itemName: item.productName,
           size: item.size || null,
-          unitPrice: item.unitPrice,
+          milk: item.milk,
+          syrups: JSON.stringify(item.syrups), // store as JSON
+          modifiers: JSON.stringify(item.modifiers),
+          sugar: item.sugar,
           quantity: item.quantity,
-          lineTotal: item.lineTotal,
-          notes: item.notes?.join(', ') || null // store modifiers/notes as comma-separated string
+          unitPrice: item.unitPrice,
+          lineTotal: item.unitPrice * item.quantity,
+          notes: item.notes?.join(", ") || null
         }))
-      }
-    }
-  })
+      },
+      
+    },
+    include: { items: true } // so you can attach to req.cart
+  });
 
-  return newOrder
+  return newOrder;
 }
+
 
 module.exports = {
     createUser,
