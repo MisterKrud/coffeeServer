@@ -110,67 +110,174 @@ async function deleteLastOrder(userId){
 }
 
 async function submitCart(userId, cartItems, total, notes) {
-  const newOrder = await prisma.order.create({
+  return await prisma.order.create({
     data: {
       userId,
-      notes: notes,
-      total: total,
+      notes,
+      total,
       items: {
-        create: cartItems.map(item => ({
-          itemName: item.productName,
-          size: item.size || null,
-          milk: item.milk || null,
-          syrups: JSON.stringify(item.syrups) || null, // store as JSON
-          tea: item.tea || null,
-          extras: JSON.stringify(item.extras) || null,
-          sauce: item.sauce || null,
-          topping: item.topping || null,
-          modifiers: JSON.stringify(item.modifiers) || null,
-          sugar: item.sugar || null,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          lineTotal: item.unitPrice * item.quantity,
-         
-        }))
-      },
-    
-      
-    },
-    include: { items: true } // so you can attach to req.cart
-  });
+        create: cartItems.map(item => {
+          const unitPrice = Number(item.unitPrice);
+          const quantity = Number(item.quantity);
 
-  return newOrder;
+          if (!unitPrice || !quantity) {
+            throw new Error("Invalid cart item");
+          }
+
+          return {
+            itemName: item.productName,
+            size: item.size ?? null,
+            milk: item.milk ?? null,
+            tea: item.tea ?? null,
+            sugar: item.sugar ?? null,
+            topping: item.topping ?? null,
+
+            syrups: item.syrups ? JSON.stringify(item.syrups) : null,
+            extras: item.extras ? JSON.stringify(item.extras) : null,
+            modifiers: item.modifiers ? JSON.stringify(item.modifiers) : null,
+            sauce: item.sauce ? JSON.stringify(item.sauce) : null,
+
+            quantity,
+            unitPrice,
+            lineTotal: unitPrice * quantity,
+          };
+        }),
+      },
+    },
+    include: { items: true },
+  });
 }
 
-async function getTodaysOrders() {
-  const timeZone = 'Australia/Sydney';
+
+function getSydneyTodayRange() {
   const now = new Date();
 
-  // Get the local Sydney start/end of day
-  const localStart = startOfDay(now);
-  const localEnd = endOfDay(now);
+  // Sydney is UTC+10 or +11 (DST)
+  // We can detect DST automatically
+  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+  const isDST = Math.min(jan, jul) !== now.getTimezoneOffset();
 
-  // Convert local Sydney times to UTC for querying the DB
-  const start = new Date(localStart.getTime() - (localStart.getTimezoneOffset() * 60000));
-  const end = new Date(localEnd.getTime() - (localEnd.getTimezoneOffset() * 60000));
+  const offsetHours = isDST ? 11 : 10;
 
-  const todaysOrders = await prisma.order.findMany({
+  const utcMidnight = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  ));
+
+  const start = new Date(utcMidnight.getTime() - offsetHours * 60 * 60 * 1000);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+
+  return { start, end };
+}
+
+
+// db/orders.js
+//
+async function getTodaysOrders() {
+//   const start = new Date();
+//   start.setUTCHours(0, 0, 0, 0);
+
+//   const end = new Date();
+//   end.setUTCHours(23, 59, 59, 999);
+
+const { start, end } = getSydneyTodayRange();
+
+const orders = await prisma.order.findMany({
     where: {
       createdAt: {
         gte: start,
-        lt: end,
+        lte: end,
       },
     },
     include: {
-  user: { select: { name: true } },
-  items: true,
-},
-
+      user: {
+        select: { name: true },
+      },
+      items: true,
+    },
+    orderBy: { createdAt: 'asc' },
   });
 
-  console.log('Todays orders:', todaysOrders);
-  return todaysOrders;
+  return orders.map(o => ({
+    id: o.id,
+    userName: o.user.name,
+    createdAt: o.createdAt,
+    total: o.total,
+    items: o.items.map(i => ({
+      itemName: i.itemName,
+      size: i.size,
+      milk: i.milk,
+      tea: i.tea,
+      syrups: i.syrups ? JSON.parse(i.syrups) : [],
+      modifiers: i.modifiers ? JSON.parse(i.modifiers) : [],
+      extras: i.extras ? JSON.parse(i.extras) : [],
+      topping: i.topping,
+      sauce: i.sauce ? JSON.parse(i.sauce) : [],
+      sugar: i.sugar,
+      quantity: i.quantity,
+      unitPrice: Number(i.unitPrice),
+      lineTotal: Number(i.lineTotal),
+    })),
+  }));
 }
+
+
+
+// async function getTodaysOrders() {
+//   const timeZone = 'Australia/Sydney';
+
+//   const now = new Date();
+
+//   // Convert "now" to Sydney time
+//   const sydneyNow = toZonedTime(now, timeZone);
+
+//   // Get start/end of Sydney day
+//   const sydneyStart = startOfDay(sydneyNow);
+//   const sydneyEnd = endOfDay(sydneyNow);
+
+//   // Convert back to UTC for Prisma
+//   const start = new Date(sydneyStart.toISOString());
+//   const end = new Date(sydneyEnd.toISOString());
+
+//   const orders = await prisma.order.findMany({
+//     where: {
+//       createdAt: {
+//         gte: start,
+//         lte: end,
+//       },
+//     },
+//     include: {
+//       user: { select: { name: true } },
+//       items: true,
+//     },
+//     orderBy: { createdAt: 'asc' },
+//   });
+
+//   return orders.map(o => ({
+//     id: o.id,
+//     userName: o.user.name,
+//     createdAt: o.createdAt,
+//     total: o.total,
+//     items: o.items.map(i => ({
+//       itemName: i.itemName,
+//       size: i.size,
+//       milk: i.milk,
+//       tea: i.tea,
+//       syrups: i.syrups ? JSON.parse(i.syrups) : [],
+//       modifiers: i.modifiers ? JSON.parse(i.modifiers) : [],
+//       extras: i.extras ? JSON.parse(i.extras) : [],
+//       topping: i.topping,
+//       sauce: i.sauce ? JSON.parse(i.sauce) : [],
+//       sugar: i.sugar,
+//       quantity: i.quantity,
+//       unitPrice: Number(i.unitPrice),
+//       lineTotal: Number(i.lineTotal),
+//     })),
+//   }));
+// }
+
 
 module.exports = {
     createUser,

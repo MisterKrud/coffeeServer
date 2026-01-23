@@ -19,6 +19,10 @@ router.get('/', (req, res) => {
 //   // validation comes next
 // });
 
+router.get('/todaysOrders', authControllers.authenticateJWT, userControllers.getTodaysOrders);
+
+
+
 router.post("/newOrder", authControllers.authenticateJWT, userControllers.submitCart, (req, res) => {
 
 

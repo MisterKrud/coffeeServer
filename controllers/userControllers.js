@@ -128,6 +128,17 @@ const deleteLastOrder = async (req, res, next) => {
     }
 }
 
+const getTodaysOrders = async (req, res, next) => {
+  try {
+    const orders = await db.getTodaysOrders();
+    console.log('orders', orders)
+    res.json(orders);
+  } catch (err) {
+    next(err);
+  }
+}
+
+
 module.exports = {
     createUser,
     getUserById,
@@ -135,5 +146,6 @@ module.exports = {
     submitCart,
     getUsersLastOrder,
     deleteLastOrder,
-    getAllUserOrders
+    getAllUserOrders,
+    getTodaysOrders
 }
