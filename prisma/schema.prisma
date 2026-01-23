@@ -44,6 +44,7 @@ model OrderItem {
   sauce      String?
   topping    String?
   modifiers  String?
+  egg        String?
   sugar      Int?
   unitPrice  Decimal         @db.Decimal(10, 2)
   quantity   Int             @default(1)

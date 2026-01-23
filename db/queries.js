@@ -2,6 +2,7 @@
 const prisma = require("../lib/prisma.js")
 const { startOfDay, endOfDay } = require("date-fns");
 const {  utcToZonedTime } = require("date-fns-tz");
+const {sizeAbbrev, toppingAbbrev, syrupsAbbrev, eggsAbbrev, coffeeAbbrev, foodAbbrev, milkAbbrev, teaAbbrev, modifiersAbbrev, extrasAbbrev} = require("./abbreviationData")
 
 async function createUser(email, name, password){
     const user = await prisma.user.create({
@@ -131,6 +132,7 @@ async function submitCart(userId, cartItems, total, notes) {
             tea: item.tea ?? null,
             sugar: item.sugar ?? null,
             topping: item.topping ?? null,
+            egg: item.eggs ?? null,
 
             syrups: item.syrups ? JSON.stringify(item.syrups) : null,
             extras: item.extras ? JSON.stringify(item.extras) : null,
@@ -201,26 +203,43 @@ const orders = await prisma.order.findMany({
   });
 
   return orders.map(o => ({
+    
     id: o.id,
     userName: o.user.name,
     createdAt: o.createdAt,
     total: o.total,
-    items: o.items.map(i => ({
+    items: o.items.map(i => {
+    const syrups = i.syrups ? JSON.parse(i.syrups) : [];
+    const modifiers= i.modifiers ? JSON.parse(i.modifiers) : [];
+    const extras = i.extras ? JSON.parse(i.extras) : [];
+    
+    return{
       itemName: i.itemName,
+      abbrevName: coffeeAbbrev[i.itemName] || foodAbbrev[i.itemName] || i.itemName,
       size: i.size,
+      abbrevSize: sizeAbbrev[i.size] || i.size,
       milk: i.milk,
+      abbrevMilk: milkAbbrev[i.milk] || i.milk,
       tea: i.tea,
-      syrups: i.syrups ? JSON.parse(i.syrups) : [],
-      modifiers: i.modifiers ? JSON.parse(i.modifiers) : [],
-      extras: i.extras ? JSON.parse(i.extras) : [],
+      abbrevTea: teaAbbrev[i.tea] || i.tea,
+      syrups,
+      abbrevSyrups: syrups.map(s => syrupsAbbrev[s] ?? s),
+      modifiers,
+      abbrevModifiers: modifiers.map(m => modifiersAbbrev[m] ?? m),
+      extras,
+      abbrevExtras: extras.map(ex => extrasAbbrev[ex] ?? ex ),
+      eggs: i.eggs,
+      abbrevEggs: eggsAbbrev[i.eggs] || i.eggs,
       topping: i.topping,
+      abbrevTopping: toppingAbbrev[i.topping] || i.topping,
       sauce: i.sauce ? JSON.parse(i.sauce) : [],
       sugar: i.sugar,
       quantity: i.quantity,
       unitPrice: Number(i.unitPrice),
       lineTotal: Number(i.lineTotal),
-    })),
-  }));
+    }
+    })}))
+  
 }
 
 
