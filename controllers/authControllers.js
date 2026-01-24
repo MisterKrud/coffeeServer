@@ -13,12 +13,12 @@ const userValidator = [
     .trim()
     .isAlphanumeric()
     .withMessage("Password must be alphanumeric"),
-  body("confirmPassword")
-    .trim()
-    .custom((value, { req }) => {
-      return value === req.body.password;
-    })
-    .withMessage("Passwords do not match"),
+  // body("confirmPassword")
+  //   .trim()
+  //   .custom((value, { req }) => {
+  //     return value === req.body.password;
+  //   })
+  //   .withMessage("Passwords do not match"),
 ];
 
 
@@ -26,9 +26,7 @@ const createUser = [
     userValidator, async(req, res, next) => {
  const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).render("index", {
-        errors: errors.array(),
-      });
+      return res.status(400).json({ errors: errors.array() })
     }
 
     const newUser = matchedData(req)
@@ -39,6 +37,25 @@ const createUser = [
     next()
 }
 ]
+
+const issueSignupToken = (req, res) => {
+  const user = req.user;
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "30d" }
+  );
+
+  res.status(201).json({
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    },
+  });
+};
 
 const authenticateUser = (req, res, next) => {
      passport.authenticate("local", (err, user, info) => {
@@ -52,7 +69,7 @@ const authenticateUser = (req, res, next) => {
    const token = jwt.sign(
     {id: user.id, email: user.email},
     process.env.JWT_SECRET,
-    { expiresIn: '1hr'}
+    { expiresIn: '30d'}
    );
 
    return res.json({
@@ -92,4 +109,5 @@ module.exports = {
     authenticateUser, 
     createUser,
    authenticateJWT,
+   issueSignupToken
 }

@@ -35,7 +35,8 @@ model OrderItem {
   id         Int      @id @default(autoincrement())
   orderId    Int
 
-  itemName   String          // "Flat White", "Ham & cheese croissant"
+  itemName   String  
+  orderedFor String         // "Flat White", "Ham & cheese croissant"
   size       String?         // "Small", "Medium", "Large", null for food
   milk       String?
   syrups     String?

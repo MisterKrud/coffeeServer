@@ -7,7 +7,7 @@ const coffeeAbbrev = {
   "Long Black": "LB",
   "Hot Choc": "HC",
   "White Hot Choc": "Wht HC",
-  "Chai Latte": "Cai",
+  "Chai Latte": "Chai",
   "Long Black": "Lng-black",
   };
 
@@ -39,7 +39,7 @@ const milkAbbrev = {
 }
 
 const foodAbbrev = {
-    "Egg & Bacon Roll": "Egg-bacon-roll",
+    "Egg & Bacon Roll": "Egg bacon roll",
     "Avocado on toast": "Avo toast",
 }
 
@@ -60,8 +60,8 @@ const modifiersAbbrev ={
 
 const toppingAbbrev = {
     "Fruit Jam": "jam",
-    "Vegemite": "v-mite",
-    "Peanut Butter": "p-butter",
+    "Vegemite": "vegemite",
+    "Peanut Butter": "peanut butter",
     "Nutella": "nutella",
     "Honey": "honey"
 }
@@ -71,7 +71,7 @@ const extrasAbbrev={
     "mushrooms": "mushroom",
     "capsicum:": "caps",
     "tomato": "tom",
-    "sundriedTomato": "sd-tom"
+    "sundriedTomato": "sundrd-tom"
 }
 
 const eggsAbbrev = {

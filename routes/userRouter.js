@@ -24,6 +24,10 @@ router.get('/allOrders',authControllers.authenticateJWT, userControllers.getAllU
     return res.json(req.userOrders)
 })
 
+// router.put('/updatePassword', authControllers.authenticateJWT, userControllers.updatePassword, (req, res) => {
+//     return res.json(req.user)
+// })
+
 router.delete('/deleteLastOrder', authControllers.authenticateJWT,userControllers.deleteLastOrder, (req, res) => {
     return res.json(req.lastOrder)
 })

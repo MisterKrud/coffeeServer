@@ -10,13 +10,19 @@ const userValidator = [
     .trim()
     .isAlphanumeric()
     .withMessage("Password must be alphanumeric"),
-  body("confirmPassword")
-    .trim()
-    .custom((value, { req }) => {
-      return value === req.body.password;
-    })
-    .withMessage("Passwords do not match"),
+//   body("confirmPassword")
+//     .trim()
+//     .custom((value, { req }) => {
+//       return value === req.body.password;
+//     })
+//     .withMessage("Passwords do not match"),
 ];
+
+const newPasswordValidator = [
+    body("newPassword").trim()
+        .isAlphanumeric()
+        .withMessage("Password must be alphanumeric")
+]
 
 
 const createUser = [
@@ -37,7 +43,13 @@ const createUser = [
 }
 ]
 
+const updateUserPassword = async (req, res, next) => {
+    const user = Number(req.user);
+    const newHashedPassword = await bcrypt.hash(user.newPassword, 10);
+    const updatedUser = await db.updateUserPassword(user.id, newHashedPassword)
+    next()
 
+}
 
 
 const getUserById = async (req, res, next) => {

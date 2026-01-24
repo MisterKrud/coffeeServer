@@ -15,6 +15,17 @@ async function createUser(email, name, password){
     return user
 }
 
+async function updateUserPassword(userId, newPassword) {
+    return await prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            hashedPassword: newPassword
+        }
+    })
+}
+
 async function getUserByEmail(email){
     const user = await prisma.user.findUnique({
         where: {
@@ -138,7 +149,7 @@ async function submitCart(userId, cartItems, total, notes) {
             extras: item.extras ? JSON.stringify(item.extras) : null,
             modifiers: item.modifiers ? JSON.stringify(item.modifiers) : null,
             sauce: item.sauce ? JSON.stringify(item.sauce) : null,
-
+            orderedFor: item.orderedFor,
             quantity,
             unitPrice,
             lineTotal: unitPrice * quantity,
@@ -195,7 +206,7 @@ const orders = await prisma.order.findMany({
     },
     include: {
       user: {
-        select: { name: true },
+        select: { name: true, email: true },
       },
       items: true,
     },
@@ -206,13 +217,14 @@ const orders = await prisma.order.findMany({
     
     id: o.id,
     userName: o.user.name,
+    userEmail: o.user.email,
     createdAt: o.createdAt,
     total: o.total,
     items: o.items.map(i => {
     const syrups = i.syrups ? JSON.parse(i.syrups) : [];
     const modifiers= i.modifiers ? JSON.parse(i.modifiers) : [];
     const extras = i.extras ? JSON.parse(i.extras) : [];
-    
+   
     return{
       itemName: i.itemName,
       abbrevName: coffeeAbbrev[i.itemName] || foodAbbrev[i.itemName] || i.itemName,
@@ -237,6 +249,7 @@ const orders = await prisma.order.findMany({
       quantity: i.quantity,
       unitPrice: Number(i.unitPrice),
       lineTotal: Number(i.lineTotal),
+      orderedFor: i.orderedFor
     }
     })}))
   
@@ -308,5 +321,6 @@ module.exports = {
     getUsersLastOrder,
     getAllUserOrders,
     deleteLastOrder,
-    getTodaysOrders
+    getTodaysOrders,
+    updateUserPassword
 }

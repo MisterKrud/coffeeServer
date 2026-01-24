@@ -19,8 +19,9 @@ router.get('/', (req, res) => {
 //   // validation comes next
 // });
 
-router.get('/todaysOrders', authControllers.authenticateJWT, userControllers.getTodaysOrders);
+router.get('/todaysOrders',  userControllers.getTodaysOrders);
 
+router.post('/sign-up', userControllers.createUser, authControllers.issueSignupToken)
 
 
 router.post("/newOrder", authControllers.authenticateJWT, userControllers.submitCart, (req, res) => {
