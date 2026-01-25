@@ -22,16 +22,23 @@
     "start": "NODE_ENV=production node app.js"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "curl": "^0.1.4",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
+    "dotenv": "^17.2.3",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
     "passport": "^0.7.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "pg": "^8.17.2"
+  },
+  "devDependencies": {
+    "prisma": "^7.3.0"
   }
 }
