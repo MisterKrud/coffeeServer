@@ -9,7 +9,7 @@ router.get('/', (req, res) => {
     return res.send('success')
 })
 
-app.get("/test-db", async (req, res) => {
+router.get("/test-db", async (req, res) => {
   try {
     const users = await prisma.user.findMany();
     res.json({ success: true, count: users.length });
