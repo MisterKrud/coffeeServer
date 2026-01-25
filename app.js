@@ -7,6 +7,7 @@ const router = require("./routes/router");
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const adminRouter = require("./routes/adminRouter");
+const { default: next } = require("next");
 
 const app = express();
 
@@ -25,8 +26,10 @@ app.use("/admin", adminRouter);
 app.use("/", router);
 
 // SPA fallback
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+app.use((req, res) => {
+  res.sendFile(path.resolve(__dirname, "dist", "index.html"), err =>{
+    if (err) next(err);
+  });
 });
 
 // error handler
