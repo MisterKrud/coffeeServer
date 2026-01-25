@@ -5,9 +5,9 @@ const userControllers = require('../controllers/userControllers')
 const authControllers = require("../controllers/authControllers");
 const { order } = require('../lib/prisma');
 
-router.get('/', (req, res) => {
-    return res.send('success')
-})
+// router.get('/', (req, res) => {
+//     return res.send('success')
+// })
 
 router.get("/test-db", async (req, res) => {
   try {
