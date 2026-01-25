@@ -9,15 +9,17 @@ router.get('/', (req, res) => {
     return res.send('success')
 })
 
-// router.post("/newOrder", authControllers.authenticateJWT, userControllers.submitCart, async (req, res) => {
-//   const { items, total } = req.body;
+app.get("/test-db", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.json({ success: true, count: users.length });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
-//   if (!Array.isArray(items) || items.length === 0) {
-//     return res.status(400).json({ message: "Order has no items" });
-//   }
-//   console.log ('submitted order from front end',req.body)
-//   // validation comes next
-// });
+
+router.get('/health', (req, res) => res.send("Health ok"))
 
 router.get('/todaysOrders',  userControllers.getTodaysOrders);
 
