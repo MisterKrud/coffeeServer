@@ -25,7 +25,7 @@ app.use("/admin", adminRouter);
 app.use("/", router);
 
 // SPA fallback
-app.use ((req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
