@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({
+  path: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev'
+});
 const express = require("express");
 const path = require("node:path");
 const cors = require("cors");
@@ -42,5 +44,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+  process.env.NODE_ENV === 'development' ? console.log('Dev mode') : console.log('Prod mode')
   console.log(`Coffee server active on port: ${PORT}`);
 });

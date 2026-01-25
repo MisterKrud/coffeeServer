@@ -1,6 +1,9 @@
 require('dotenv').config()
 const { Pool } = require('pg')
 
+if (process.env.NODE_ENV === 'development') {
+  console.log('Running in dev mode')
+}
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 
