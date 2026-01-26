@@ -29,11 +29,11 @@ app.use("/admin", adminRouter);
 app.use("/", router);
 
 // SPA fallback
-app.use((req, res, next) => {
-  res.sendFile(path.resolve(__dirname, "dist", "index.html"), err =>{
-    if (err) next(err);
-  });
-});
+// app.use((req, res, next) => {
+//   res.sendFile(path.resolve(__dirname, "dist", "index.html"), err =>{
+//     if (err) next(err);
+//   });
+// });
 
 // error handler
 app.use((err, req, res, next) => {
