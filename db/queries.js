@@ -76,7 +76,7 @@ async function getAllUserOrders(userId){
             userId: userId
         },
         orderBy: {
-            id: 'desc',
+            id: 'asc',
         },
         include: {
             items: true
@@ -281,6 +281,8 @@ async function getUsersLastOrder(userId){
     })
     return orders.map(ordersMap)
 }
+
+
 
 
 

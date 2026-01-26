@@ -3,45 +3,7 @@ const bcrypt = require("bcryptjs");
 const db = require("../db/queries");
 const { body, validationResult, matchedData } = require("express-validator");
 
-const userValidator = [
-  body("name").trim(),
-  body("email").trim(),
-  body("password")
-    .trim()
-    .isAlphanumeric()
-    .withMessage("Password must be alphanumeric"),
-//   body("confirmPassword")
-//     .trim()
-//     .custom((value, { req }) => {
-//       return value === req.body.password;
-//     })
-//     .withMessage("Passwords do not match"),
-];
 
-const newPasswordValidator = [
-    body("newPassword").trim()
-        .isAlphanumeric()
-        .withMessage("Password must be alphanumeric")
-]
-
-
-const createUser = [
-    userValidator, async(req, res, next) => {
- const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).render("index", {
-        errors: errors.array(),
-      });
-    }
-
-    const newUser = matchedData(req)
-    const hashedPassword = await bcrypt.hash(newUser.password, 10);
-    const user = await db.createUser(newUser.email, newUser.name, hashedPassword)
-    req.user = await db.getUserById(user.id)
-
-    next()
-}
-]
 
 const updateUserPassword = async (req, res, next) => {
     const user = Number(req.user);
@@ -152,7 +114,7 @@ const getTodaysOrders = async (req, res, next) => {
 
 
 module.exports = {
-    createUser,
+ 
     getUserById,
     getAllUsers,
     submitCart,
