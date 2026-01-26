@@ -166,28 +166,49 @@ async function submitCart(userId, cartItems, total, notes) {
 }
 
 
+// function getSydneyTodayRange() {
+//   const now = new Date();
+
+//   // Sydney is UTC+10 or +11 (DST)
+//   // We can detect DST automatically
+//   const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+//   const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+//   const isDST = Math.min(jan, jul) !== now.getTimezoneOffset();
+
+//   const offsetHours = isDST ? 11 : 10;
+
+//   const utcMidnight = new Date(Date.UTC(
+//     now.getUTCFullYear(),
+//     now.getUTCMonth(),
+//     now.getUTCDate()
+//   ));
+
+//   const start = new Date(utcMidnight.getTime() - offsetHours * 60 * 60 * 1000);
+//   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+
+//   return { start, end };
+// }
+
 function getSydneyTodayRange() {
+  const timeZone = 'Australia/Sydney';
+
   const now = new Date();
 
-  // Sydney is UTC+10 or +11 (DST)
-  // We can detect DST automatically
-  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
-  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
-  const isDST = Math.min(jan, jul) !== now.getTimezoneOffset();
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now);
 
-  const offsetHours = isDST ? 11 : 10;
+  const get = (type) => parts.find(p => p.type === type).value;
 
-  const utcMidnight = new Date(Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate()
-  ));
+  const year = get('year');
+  const month = get('month');
+  const day = get('day');
 
-  const start = new Date(utcMidnight.getTime() - offsetHours * 60 * 60 * 1000);
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-
-  return { start, end };
 }
+
 
 
 function ordersMap(o) {
