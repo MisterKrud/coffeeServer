@@ -121,6 +121,10 @@ async function deleteLastOrder(userId){
 
 }
 
+
+
+
+
 async function submitCart(userId, cartItems, total, notes) {
   return await prisma.order.create({
     data: {
@@ -186,34 +190,8 @@ function getSydneyTodayRange() {
 }
 
 
-// db/orders.js
-//
-async function getTodaysOrders() {
-//   const start = new Date();
-//   start.setUTCHours(0, 0, 0, 0);
-
-//   const end = new Date();
-//   end.setUTCHours(23, 59, 59, 999);
-
-const { start, end } = getSydneyTodayRange();
-
-const orders = await prisma.order.findMany({
-    where: {
-      createdAt: {
-        gte: start,
-        lte: end,
-      },
-    },
-    include: {
-      user: {
-        select: { name: true, email: true },
-      },
-      items: true,
-    },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  return orders.map(o => ({
+function ordersMap(o) {
+    return {
     
     id: o.id,
     userName: o.user.name,
@@ -251,8 +229,57 @@ const orders = await prisma.order.findMany({
       lineTotal: Number(i.lineTotal),
       orderedFor: i.orderedFor
     }
-    })}))
+    })}
+}
+
+
+// db/orders.js
+//
+async function getTodaysOrders() {
+
+const { start, end } = getSydneyTodayRange();
+
+const orders = await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+    },
+    include: {
+      user: {
+        select: { name: true, email: true },
+      },
+      items: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  return orders.map(ordersMap)
   
+}
+
+async function getUsersLastOrder(userId){
+    const { start, end } = getSydneyTodayRange();
+    const orders = await prisma.order.findMany({
+        where: {
+            createdAt: {
+                gte: start,
+                lte: end,
+            },
+
+            userId: userId,
+        },
+        include: {
+            user: {
+                select: {name: true}
+            },
+             items: true,
+        },
+        orderBy: {createdAt: 'asc'}
+       
+    })
+    return orders.map(ordersMap)
 }
 
 
