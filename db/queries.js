@@ -194,6 +194,7 @@ function getSydneyTodayRange() {
 
   const now = new Date();
 
+  // Get Sydney calendar date safely
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',
@@ -201,13 +202,34 @@ function getSydneyTodayRange() {
     day: '2-digit',
   }).formatToParts(now);
 
-  const get = (type) => parts.find(p => p.type === type).value;
+  const get = (type) => parts.find(p => p.type === type)?.value;
 
   const year = get('year');
   const month = get('month');
   const day = get('day');
 
+  if (!year || !month || !day) {
+    throw new Error('Failed to determine Sydney date');
+  }
+
+  // Construct Sydney-local midnights
+  const sydneyStartLocal = `${year}-${month}-${day}T00:00:00`;
+  const sydneyEndLocal   = `${year}-${month}-${day}T24:00:00`;
+
+  // Convert Sydney local time → UTC Date
+  const start = new Date(
+    new Date(sydneyStartLocal)
+      .toLocaleString('en-US', { timeZone })
+  );
+
+  const end = new Date(
+    new Date(sydneyEndLocal)
+      .toLocaleString('en-US', { timeZone })
+  );
+
+  return { start, end };
 }
+
 
 
 
