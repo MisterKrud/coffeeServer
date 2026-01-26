@@ -280,15 +280,15 @@ function ordersMap(o) {
 //
 async function getTodaysOrders() {
 
-const { start, end } = getSydneyTodayRange();
+// const { start, end } = getSydneyTodayRange();
 
 const orders = await prisma.order.findMany({
-    where: {
-      createdAt: {
-        gte: start,
-        lte: end,
-      },
-    },
+    // where: {
+    //   createdAt: {
+    //     gte: start,
+    //     lte: end,
+    //   },
+    // },
     include: {
       user: {
         select: { name: true, email: true },
