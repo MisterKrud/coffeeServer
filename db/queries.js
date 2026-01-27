@@ -289,6 +289,7 @@ function ordersMap(o) {
     userEmail: o.user.email,
     createdAt: o.createdAt,
     total: o.total,
+    notes: o.notes,
     items: o.items.map(i => {
     const syrups = i.syrups ? JSON.parse(i.syrups) : [];
     const modifiers= i.modifiers ? JSON.parse(i.modifiers) : [];
@@ -319,7 +320,7 @@ function ordersMap(o) {
       unitPrice: Number(i.unitPrice),
       lineTotal: Number(i.lineTotal),
       orderedFor: i.orderedFor,
-      notes: i.notes ?? ""
+    
     }
     })}
 }
