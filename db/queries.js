@@ -123,14 +123,87 @@ async function deleteLastOrder(userId){
 
 
 
+//VERSION NEEDS TO CHANGE FOR TMIESTAMP CREATION
+
+// async function submitCart(userId, cartItems, total, notes) {
+//   return await prisma.order.create({
+//     data: {
+//       userId,
+//       notes,
+//       total,
+//       items: {
+//         create: cartItems.map(item => {
+//           const unitPrice = Number(item.unitPrice);
+//           const quantity = Number(item.quantity);
+
+//           if (!unitPrice || !quantity) {
+//             throw new Error("Invalid cart item");
+//           }
+
+//           return {
+//             itemName: item.productName,
+//             size: item.size ?? null,
+//             milk: item.milk ?? null,
+//             tea: item.tea ?? null,
+//             sugar: item.sugar ?? null,
+//             topping: item.topping ?? null,
+//             egg: item.eggs ?? null,
+
+//             syrups: item.syrups ? JSON.stringify(item.syrups) : null,
+//             extras: item.extras ? JSON.stringify(item.extras) : null,
+//             modifiers: item.modifiers ? JSON.stringify(item.modifiers) : null,
+//             sauce: item.sauce ? JSON.stringify(item.sauce) : null,
+//             orderedFor: item.orderedFor,
+//             quantity,
+//             unitPrice,
+//             lineTotal: unitPrice * quantity,
+//           };
+//         }),
+//       },
+//     },
+//     include: { items: true },
+//   });
+// }
+
+
+// Helper to get Sydney current time
+function getSydneyNow() {
+  const now = new Date();
+
+  // Get Sydney time components using Intl.DateTimeFormat
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(now);
+
+  const y = Number(parts.find(p => p.type === 'year').value);
+  const m = Number(parts.find(p => p.type === 'month').value);
+  const d = Number(parts.find(p => p.type === 'day').value);
+  const h = Number(parts.find(p => p.type === 'hour').value);
+  const min = Number(parts.find(p => p.type === 'minute').value);
+  const s = Number(parts.find(p => p.type === 'second').value);
+
+  // Construct a valid JS Date in UTC that represents Sydney local time
+  return new Date(Date.UTC(y, m - 1, d, h, min, s));
+}
 
 
 async function submitCart(userId, cartItems, total, notes) {
+  // Sydney-local timestamp
+  const createdAt = getSydneyNow();
+
   return await prisma.order.create({
     data: {
       userId,
       notes,
       total,
+      createdAt, // explicitly set Sydney-local timestamp
       items: {
         create: cartItems.map(item => {
           const unitPrice = Number(item.unitPrice);
@@ -148,7 +221,6 @@ async function submitCart(userId, cartItems, total, notes) {
             sugar: item.sugar ?? null,
             topping: item.topping ?? null,
             egg: item.eggs ?? null,
-
             syrups: item.syrups ? JSON.stringify(item.syrups) : null,
             extras: item.extras ? JSON.stringify(item.extras) : null,
             modifiers: item.modifiers ? JSON.stringify(item.modifiers) : null,
@@ -165,70 +237,46 @@ async function submitCart(userId, cartItems, total, notes) {
   });
 }
 
-
 // function getSydneyTodayRange() {
+//   const timeZone = 'Australia/Sydney';
+
 //   const now = new Date();
 
-//   // Sydney is UTC+10 or +11 (DST)
-//   // We can detect DST automatically
-//   const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
-//   const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
-//   const isDST = Math.min(jan, jul) !== now.getTimezoneOffset();
+//   // Get Sydney calendar date safely
+//   const parts = new Intl.DateTimeFormat('en-CA', {
+//     timeZone,
+//     year: 'numeric',
+//     month: '2-digit',
+//     day: '2-digit',
+//   }).formatToParts(now);
 
-//   const offsetHours = isDST ? 11 : 10;
+//   const get = (type) => parts.find(p => p.type === type)?.value;
 
-//   const utcMidnight = new Date(Date.UTC(
-//     now.getUTCFullYear(),
-//     now.getUTCMonth(),
-//     now.getUTCDate()
-//   ));
+//   const year = get('year');
+//   const month = get('month');
+//   const day = get('day');
 
-//   const start = new Date(utcMidnight.getTime() - offsetHours * 60 * 60 * 1000);
-//   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+//   if (!year || !month || !day) {
+//     throw new Error('Failed to determine Sydney date');
+//   }
+
+//   // Construct Sydney-local midnights
+//   const sydneyStartLocal = `${year}-${month}-${day}T00:00:00`;
+//   const sydneyEndLocal   = `${year}-${month}-${day}T24:00:00`;
+
+//   // Convert Sydney local time → UTC Date
+//   const start = new Date(
+//     new Date(sydneyStartLocal)
+//       .toLocaleString('en-US', { timeZone })
+//   );
+
+//   const end = new Date(
+//     new Date(sydneyEndLocal)
+//       .toLocaleString('en-US', { timeZone })
+//   );
 
 //   return { start, end };
 // }
-
-function getSydneyTodayRange() {
-  const timeZone = 'Australia/Sydney';
-
-  const now = new Date();
-
-  // Get Sydney calendar date safely
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(now);
-
-  const get = (type) => parts.find(p => p.type === type)?.value;
-
-  const year = get('year');
-  const month = get('month');
-  const day = get('day');
-
-  if (!year || !month || !day) {
-    throw new Error('Failed to determine Sydney date');
-  }
-
-  // Construct Sydney-local midnights
-  const sydneyStartLocal = `${year}-${month}-${day}T00:00:00`;
-  const sydneyEndLocal   = `${year}-${month}-${day}T24:00:00`;
-
-  // Convert Sydney local time → UTC Date
-  const start = new Date(
-    new Date(sydneyStartLocal)
-      .toLocaleString('en-US', { timeZone })
-  );
-
-  const end = new Date(
-    new Date(sydneyEndLocal)
-      .toLocaleString('en-US', { timeZone })
-  );
-
-  return { start, end };
-}
 
 
 
@@ -281,10 +329,10 @@ function ordersMap(o) {
 
 
 // Utility to get Sydney midnight in UTC for DB query
+// Compute Sydney midnight in UTC for queries
 function getSydneyStartOfTodayUTC() {
   const now = new Date();
 
-  // Use Intl.DateTimeFormat to get year, month, day in Sydney
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Australia/Sydney',
     year: 'numeric',
@@ -300,19 +348,16 @@ function getSydneyStartOfTodayUTC() {
   const m = Number(parts.find(p => p.type === 'month').value);
   const d = Number(parts.find(p => p.type === 'day').value);
 
-  // Sydney midnight as UTC
+  // Sydney midnight in UTC
   return new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
 }
-
 
 async function getTodaysOrders() {
   const start = getSydneyStartOfTodayUTC();
 
   const orders = await prisma.order.findMany({
     where: {
-      createdAt: {
-        gte: start, // everything from Sydney midnight onwards
-      },
+      createdAt: { gte: start }, // all orders from Sydney midnight
     },
     include: {
       user: { select: { name: true, email: true } },
@@ -320,7 +365,6 @@ async function getTodaysOrders() {
     },
     orderBy: { createdAt: 'asc' },
   });
-
 
   return orders.map(ordersMap);
 }
@@ -331,7 +375,7 @@ async function getUsersLastOrder(userId) {
   const orders = await prisma.order.findMany({
     where: {
       userId,
-      createdAt: { gte: start },
+      createdAt: { gte: start }, // all orders from Sydney midnight
     },
     include: {
       user: { select: { name: true } },

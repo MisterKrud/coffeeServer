@@ -8,9 +8,8 @@ const { body, validationResult, matchedData } = require("express-validator");
 
 const userValidator = [
   body("name").trim().notEmpty(),
-  body("email").trim().isEmail(),
-  body("password")
-    .trim(),
+  body("email").trim().isEmail().normalizeEmail(),
+   body("password").trim().isLength({ min: 5 })
 ];
 
 
