@@ -280,58 +280,71 @@ function ordersMap(o) {
 
 
 
+// Utility to get Sydney midnight in UTC for DB query
+function getSydneyStartOfToday() {
+  const now = new Date();
+
+  // Convert current date/time to Sydney-local string
+  const sydneyString = now.toLocaleString('en-AU', { timeZone: 'Australia/Sydney', hour12: false });
+
+  // Extract year, month, day from string
+  const [datePart] = sydneyString.split(','); // "27/01/2026"
+  const [day, month, year] = datePart.split('/').map(Number);
+
+  // Create a Date in UTC representing Sydney midnight
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+}
+
 async function getTodaysOrders() {
+  const start = getSydneyStartOfToday();
 
- const start = new Date();
-start.setHours(0, 0, 0, 0)
-
-const orders = await prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: {
       createdAt: {
-        gte: start,
-  
+        gte: start, // everything from Sydney midnight onwards
       },
     },
     include: {
-      user: {
-        select: { name: true, email: true },
-      },
+      user: { select: { name: true, email: true } },
       items: true,
     },
     orderBy: { createdAt: 'asc' },
   });
+  console.log(getSydneyNow())
 
-  return orders.map(ordersMap)
-  
+  return orders.map(ordersMap);
 }
 
-async function getUsersLastOrder(userId){
-     const start = new Date();
-start.setHours(0, 0, 0, 0)
-   
-    const orders = await prisma.order.findMany({
-        where: {
-            createdAt: {
-                gte: start,
-            
-            },
+async function getUsersLastOrder(userId) {
+  const start = getSydneyStartOfToday();
 
-            userId: userId,
-        },
-        include: {
-            user: {
-                select: {name: true}
-            },
-             items: true,
-        },
-        orderBy: {createdAt: 'asc'}
-       
-    })
-    return orders.map(ordersMap)
+  const orders = await prisma.order.findMany({
+    where: {
+      userId,
+      createdAt: { gte: start },
+    },
+    include: {
+      user: { select: { name: true } },
+      items: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  console.log(getSydneyNow())
+  return orders.map(ordersMap);
 }
 
 
 
+
+//Sydney time for logging
+function getSydneyNow() {
+  const now = new Date();
+  const sydneyString = now.toLocaleString('en-AU', { 
+    timeZone: 'Australia/Sydney', 
+    hour12: false 
+  });
+  return new Date(sydneyString);
+}
 
 
 // async function getTodaysOrders() {
