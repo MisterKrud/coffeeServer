@@ -200,7 +200,7 @@ async function submitCart(userId, cartItems, total, notes) {
 
   return await prisma.order.create({
     data: {
-      userId,
+      user: { connect: { id: userId } },
       notes,
       total,
       createdAt, // explicitly set Sydney-local timestamp
@@ -330,34 +330,20 @@ function ordersMap(o) {
 
 // Utility to get Sydney midnight in UTC for DB query
 // Compute Sydney midnight in UTC for queries
-function getSydneyStartOfTodayUTC() {
-  const now = new Date();
-
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Australia/Sydney',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(now);
-
-  const y = Number(parts.find(p => p.type === 'year').value);
-  const m = Number(parts.find(p => p.type === 'month').value);
-  const d = Number(parts.find(p => p.type === 'day').value);
-
-  // Sydney midnight in UTC
-  return new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+// Returns Sydney midnight today
+function getSydneyStartOfToday() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0); // Sydney local midnight
+  return start;
 }
 
+// Get all orders placed today (from Sydney midnight onward)
 async function getTodaysOrders() {
-  const start = getSydneyStartOfTodayUTC();
+  const start = getSydneyStartOfToday();
 
   const orders = await prisma.order.findMany({
     where: {
-      createdAt: { gte: start }, // all orders from Sydney midnight
+      createdAt: { gte: start }, // all orders from today
     },
     include: {
       user: { select: { name: true, email: true } },
@@ -369,13 +355,14 @@ async function getTodaysOrders() {
   return orders.map(ordersMap);
 }
 
+// Get all orders for a specific user placed today
 async function getUsersLastOrder(userId) {
-  const start = getSydneyStartOfTodayUTC();
+  const start = getSydneyStartOfToday();
 
   const orders = await prisma.order.findMany({
     where: {
       userId,
-      createdAt: { gte: start }, // all orders from Sydney midnight
+      createdAt: { gte: start }, // user’s orders from today
     },
     include: {
       user: { select: { name: true } },
