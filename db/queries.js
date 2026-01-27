@@ -166,32 +166,32 @@ async function deleteLastOrder(userId){
 // }
 
 
-// Helper to get Sydney current time
-// function getSydneyNow() {
-//   const now = new Date();
+Helper to get Sydney current time
+function getSydneyNow() {
+  const now = new Date();
 
-//   // Get Sydney time components using Intl.DateTimeFormat
-//   const parts = new Intl.DateTimeFormat('en-GB', {
-//     timeZone: 'Australia/Sydney',
-//     year: 'numeric',
-//     month: '2-digit',
-//     day: '2-digit',
-//     hour: '2-digit',
-//     minute: '2-digit',
-//     second: '2-digit',
-//     hour12: false,
-//   }).formatToParts(now);
+  // Get Sydney time components using Intl.DateTimeFormat
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(now);
 
-//   const y = Number(parts.find(p => p.type === 'year').value);
-//   const m = Number(parts.find(p => p.type === 'month').value);
-//   const d = Number(parts.find(p => p.type === 'day').value);
-//   const h = Number(parts.find(p => p.type === 'hour').value);
-//   const min = Number(parts.find(p => p.type === 'minute').value);
-//   const s = Number(parts.find(p => p.type === 'second').value);
+  const y = Number(parts.find(p => p.type === 'year').value);
+  const m = Number(parts.find(p => p.type === 'month').value);
+  const d = Number(parts.find(p => p.type === 'day').value);
+  const h = Number(parts.find(p => p.type === 'hour').value);
+  const min = Number(parts.find(p => p.type === 'minute').value);
+  const s = Number(parts.find(p => p.type === 'second').value);
 
-//   // Construct a valid JS Date in UTC that represents Sydney local time
-//   return new Date(Date.UTC(y, m - 1, d, h, min, s));
-// }
+  // Construct a valid JS Date in UTC that represents Sydney local time
+  return new Date(Date.UTC(y, m - 1, d, h, min, s));
+}
 
 
 async function submitCart(userId, cartItems, total, notes) {
