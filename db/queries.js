@@ -166,7 +166,7 @@ async function deleteLastOrder(userId){
 // }
 
 
-Helper to get Sydney current time
+//Helper to get Sydney current time
 function getSydneyNow() {
   const now = new Date();
 
