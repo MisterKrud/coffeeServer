@@ -277,18 +277,21 @@ function ordersMap(o) {
 
 
 // db/orders.js
-//
+
+
+
 async function getTodaysOrders() {
 
-// const { start, end } = getSydneyTodayRange();
+ const start = new Date();
+start.setHours(0, 0, 0, 0)
 
 const orders = await prisma.order.findMany({
-    // where: {
-    //   createdAt: {
-    //     gte: start,
-    //     lte: end,
-    //   },
-    // },
+    where: {
+      createdAt: {
+        gte: start,
+  
+      },
+    },
     include: {
       user: {
         select: { name: true, email: true },
@@ -303,12 +306,14 @@ const orders = await prisma.order.findMany({
 }
 
 async function getUsersLastOrder(userId){
-    const { start, end } = getSydneyTodayRange();
+     const start = new Date();
+start.setHours(0, 0, 0, 0)
+   
     const orders = await prisma.order.findMany({
         where: {
             createdAt: {
                 gte: start,
-                lte: end,
+            
             },
 
             userId: userId,
