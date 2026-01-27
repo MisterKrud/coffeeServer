@@ -167,31 +167,31 @@ async function deleteLastOrder(userId){
 
 
 // Helper to get Sydney current time
-function getSydneyNow() {
-  const now = new Date();
+// function getSydneyNow() {
+//   const now = new Date();
 
-  // Get Sydney time components using Intl.DateTimeFormat
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Australia/Sydney',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(now);
+//   // Get Sydney time components using Intl.DateTimeFormat
+//   const parts = new Intl.DateTimeFormat('en-GB', {
+//     timeZone: 'Australia/Sydney',
+//     year: 'numeric',
+//     month: '2-digit',
+//     day: '2-digit',
+//     hour: '2-digit',
+//     minute: '2-digit',
+//     second: '2-digit',
+//     hour12: false,
+//   }).formatToParts(now);
 
-  const y = Number(parts.find(p => p.type === 'year').value);
-  const m = Number(parts.find(p => p.type === 'month').value);
-  const d = Number(parts.find(p => p.type === 'day').value);
-  const h = Number(parts.find(p => p.type === 'hour').value);
-  const min = Number(parts.find(p => p.type === 'minute').value);
-  const s = Number(parts.find(p => p.type === 'second').value);
+//   const y = Number(parts.find(p => p.type === 'year').value);
+//   const m = Number(parts.find(p => p.type === 'month').value);
+//   const d = Number(parts.find(p => p.type === 'day').value);
+//   const h = Number(parts.find(p => p.type === 'hour').value);
+//   const min = Number(parts.find(p => p.type === 'minute').value);
+//   const s = Number(parts.find(p => p.type === 'second').value);
 
-  // Construct a valid JS Date in UTC that represents Sydney local time
-  return new Date(Date.UTC(y, m - 1, d, h, min, s));
-}
+//   // Construct a valid JS Date in UTC that represents Sydney local time
+//   return new Date(Date.UTC(y, m - 1, d, h, min, s));
+// }
 
 
 async function submitCart(userId, cartItems, total, notes) {
@@ -332,10 +332,22 @@ function ordersMap(o) {
 // Compute Sydney midnight in UTC for queries
 // Returns Sydney midnight today
 function getSydneyStartOfToday() {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0); // Sydney local midnight
-  return start;
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now);
+
+  const y = parts.find(p => p.type === 'year').value;
+  const m = parts.find(p => p.type === 'month').value;
+  const d = parts.find(p => p.type === 'day').value;
+
+  return new Date(`${y}-${m}-${d}T00:00:00`);
 }
+
 
 // Get all orders placed today (from Sydney midnight onward)
 async function getTodaysOrders() {
