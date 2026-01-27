@@ -318,7 +318,8 @@ function ordersMap(o) {
       quantity: i.quantity,
       unitPrice: Number(i.unitPrice),
       lineTotal: Number(i.lineTotal),
-      orderedFor: i.orderedFor
+      orderedFor: i.orderedFor,
+      notes: i.notes ?? ""
     }
     })}
 }
