@@ -37,9 +37,10 @@ model OrderItem {
   id         Int      @id @default(autoincrement())
   orderId    Int
 
-  itemName   String  
-  orderedFor String         // "Flat White", "Ham & cheese croissant"
-  size       String?         // "Small", "Medium", "Large", null for food
+  itemName   String
+  productId  String //dev only for now
+  orderedFor String        
+  size       String?      
   milk       String?
   syrups     String?
   tea        String?
@@ -51,8 +52,6 @@ model OrderItem {
   sugar      Int?
   unitPrice  Decimal         @db.Decimal(10, 2)
   quantity   Int             @default(1)
-
-         // "extra hot", "skim milk", "not toasted"
   lineTotal  Decimal         @db.Decimal(10, 2)
 
   order      Order           @relation(fields: [orderId], references: [id])
