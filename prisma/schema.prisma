@@ -38,7 +38,7 @@ model OrderItem {
   orderId    Int
 
   itemName   String
-  productId  String //dev only for now
+  productCode  String? //dev only for now
   orderedFor String        
   size       String?      
   milk       String?
