@@ -215,6 +215,7 @@ async function submitCart(userId, cartItems, total, notes) {
 
           return {
             itemName: item.productName,
+            productCode: item.productCode,
             size: item.size ?? null,
             milk: item.milk ?? null,
             tea: item.tea ?? null,
