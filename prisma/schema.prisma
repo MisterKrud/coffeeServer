@@ -1,58 +1,53 @@
-
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
+
 datasource db {
   provider = "postgresql"
-
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  name         String
-  passwordHash String
-
-  // future-proofing for Google/Microsoft/Facebook auth
-  googleId     String?  @unique
-  microsoftId  String?  @unique
-  facebookId   String?  @unique
-
-  orders       Order[]
+  id                     Int       @id @default(autoincrement())
+  email                  String    @unique
+  name                   String
+  passwordHash           String
+  googleId               String?   @unique
+  microsoftId            String?   @unique
+  facebookId             String?   @unique
+  passwordResetExpiresAt DateTime? @default(now())
+  passwordResetTokenHash String? 
+  orders                 Order[]
 }
 
 model Order {
-  id        Int       @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   userId    Int
-  createdAt DateTime  //@default(now()) -- needs to be functionally created to avoid utc /local time conflicts
-  total     Decimal   @db.Decimal(10, 2)
-  notes      String?  
-  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime
+  total     Decimal     @db.Decimal(10, 2)
+  notes     String?
+  user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
 }
 
 model OrderItem {
-  id         Int      @id @default(autoincrement())
-  orderId    Int
-
-  itemName   String
-  productCode  String? //dev only for now
-  orderedFor String        
-  size       String?      
-  milk       String?
-  syrups     String?
-  tea        String?
-  extras     String?
-  sauce      String?
-  topping    String?
-  modifiers  String?
-  egg        String?
-  sugar      Int?
-  unitPrice  Decimal         @db.Decimal(10, 2)
-  quantity   Int             @default(1)
-  lineTotal  Decimal         @db.Decimal(10, 2)
-
-  order      Order           @relation(fields: [orderId], references: [id])
+  id          Int     @id @default(autoincrement())
+  orderId     Int
+  itemName    String
+  size        String?
+  unitPrice   Decimal @db.Decimal(10, 2)
+  quantity    Int     @default(1)
+  lineTotal   Decimal @db.Decimal(10, 2)
+  milk        String?
+  modifiers   String?
+  sugar       Int?
+  syrups      String?
+  extras      String?
+  sauce       String?
+  tea         String?
+  topping     String?
+  egg         String?
+  orderedFor  String
+  productCode String?
+  order       Order   @relation(fields: [orderId], references: [id])
 }

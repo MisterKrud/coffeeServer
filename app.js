@@ -1,6 +1,6 @@
-require("dotenv").config({
-  path: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev'
-});
+require("dotenv").config()//{
+//   path: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev'
+// });
 console.log('DATABASE_URL', process.env.DATABASE_URL)
 const express = require("express");
 const path = require("node:path");
@@ -28,14 +28,7 @@ app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/", router);
 
-// SPA fallback
-// app.use((req, res, next) => {
-//   res.sendFile(path.resolve(__dirname, "dist", "index.html"), err =>{
-//     if (err) next(err);
-//   });
-// });
 
-// error handler
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({
