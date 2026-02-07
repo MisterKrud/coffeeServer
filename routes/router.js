@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const router = Router();
+const axios = require('axios')
 const passport = require('../config/passport');
 const userControllers = require('../controllers/userControllers')
 const authControllers = require("../controllers/authControllers");
@@ -36,8 +37,32 @@ router.post("/newOrder", authControllers.authenticateJWT, userControllers.submit
   // validation comes next
 });
 
-router.get("/oauth2callback", (req, res) => {
-  res.send("OAuth callback received");
+router.get("/oauth2callback", async (req, res) => {
+  const code = req.query.code;
+  if (!code) return res.status(400).send("No code");
+
+  try {
+    const response = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      {
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        grant_type: "authorization_code",
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    console.log("TOKENS:", response.data);
+
+    res.send("OAuth success — check logs");
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).send("Token exchange failed");
+  }
 });
 
 module.exports = router;
