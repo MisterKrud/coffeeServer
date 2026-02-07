@@ -2,14 +2,17 @@
 const prisma = require("../lib/prisma.js");
 const crypto = require("crypto");
 const { startOfDay, endOfDay } = require("date-fns");
+const bcrypt = require("bcryptjs")
+const crypto = require("crypto");
 const {  utcToZonedTime } = require("date-fns-tz");
 const {sizeAbbrev, toppingAbbrev, syrupsAbbrev, eggsAbbrev, coffeeAbbrev, foodAbbrev, milkAbbrev, teaAbbrev, modifiersAbbrev, extrasAbbrev} = require("./abbreviationData")
 
 async function createUser(email, name, password){
+    const normalizedEmail = email.trim().toLowerCase();
     const user = await prisma.user.create({
         data: {
             name: name,
-            email: email,
+            email: normalizedEmail,
             passwordHash: password,
         }
     })
@@ -28,9 +31,10 @@ async function updateUserPassword(userId, newPassword) {
 }
 
 async function getUserByEmail(email){
+  const normalizedEmail = email.trim().toLowerCase();
     const user = await prisma.user.findUnique({
         where: {
-            email: email
+            email: normalizedEmail
         }
     })
     return user
@@ -49,25 +53,25 @@ async function getAllUsers() {
    return await prisma.user.findMany()
   
 }
-
-async function getUsersLastOrder(userId){
-    const lastOrder = await prisma.order.findFirst({
-        where: {
+//WHY IS THIS HERE WHEN IT EXISTS SOMEWHERE ELSE?
+// async function getUsersLastOrder(userId){
+//     const lastOrder = await prisma.order.findFirst({
+//         where: {
             
-            userId: userId
-        },
-        orderBy: {
-            id: 'desc',
-        }
-    })
+//             userId: userId
+//         },
+//         orderBy: {
+//             id: 'desc',
+//         }
+//     })
 
-    const orderItems = await prisma.orderItem.findMany({
-        where: {
-            orderId: lastOrder.id
-        }
-    })
-    return orderItems
-}
+//     const orderItems = await prisma.orderItem.findMany({
+//         where: {
+//             orderId: lastOrder.id
+//         }
+//     })
+//     return orderItems
+// }
 
 async function getAllUserOrders(userId){
     const userOrders = await prisma.order.findMany({
@@ -87,16 +91,6 @@ async function getAllUserOrders(userId){
     return userOrders
 }
 
-async function updateUserPassword(userId, newPassword){
-    await prisma.user.update({
-        where: {
-            id: userId
-        },
-        data: {
-            password: newPassword
-        }
-    })
-}
 
 async function deleteLastOrder(userId){
     const lastOrder = await prisma.order.findFirst({
@@ -124,47 +118,7 @@ async function deleteLastOrder(userId){
 
 
 
-//VERSION NEEDS TO CHANGE FOR TMIESTAMP CREATION
 
-// async function submitCart(userId, cartItems, total, notes) {
-//   return await prisma.order.create({
-//     data: {
-//       userId,
-//       notes,
-//       total,
-//       items: {
-//         create: cartItems.map(item => {
-//           const unitPrice = Number(item.unitPrice);
-//           const quantity = Number(item.quantity);
-
-//           if (!unitPrice || !quantity) {
-//             throw new Error("Invalid cart item");
-//           }
-
-//           return {
-//             itemName: item.productName,
-//             size: item.size ?? null,
-//             milk: item.milk ?? null,
-//             tea: item.tea ?? null,
-//             sugar: item.sugar ?? null,
-//             topping: item.topping ?? null,
-//             egg: item.eggs ?? null,
-
-//             syrups: item.syrups ? JSON.stringify(item.syrups) : null,
-//             extras: item.extras ? JSON.stringify(item.extras) : null,
-//             modifiers: item.modifiers ? JSON.stringify(item.modifiers) : null,
-//             sauce: item.sauce ? JSON.stringify(item.sauce) : null,
-//             orderedFor: item.orderedFor,
-//             quantity,
-//             unitPrice,
-//             lineTotal: unitPrice * quantity,
-//           };
-//         }),
-//       },
-//     },
-//     include: { items: true },
-//   });
-// }
 
 
 //Helper to get Sydney current time
@@ -238,8 +192,6 @@ async function submitCart(userId, cartItems, total, notes) {
     include: { items: true },
   });
 }
-
-
 
 
 
@@ -352,71 +304,72 @@ async function getUsersLastOrder(userId) {
 }
 
 
+//Reset Password
+async function createPasswordResetToken(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  console.log('request password reset start')
+  const user = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true },
+  });
 
+    if (!user) {
+    console.log('No such user')
+    return null
+  };
 
-//Sydney time for logging
-// function getSydneyNow() {
-//   const now = new Date();
-//   const sydneyString = now.toLocaleString('en-AU', { 
-//     timeZone: 'Australia/Sydney', 
-//     hour12: false 
-//   });
-//   return new Date(sydneyString);
-// }
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
 
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordResetTokenHash: tokenHash,
+      passwordResetExpiresAt: new Date(Date.now() + 1000 * 60 * 30),
+    },
+  });
+  console.log('token created')
+  return rawToken;
+}
 
-// async function getTodaysOrders() {
-//   const timeZone = 'Australia/Sydney';
+async function consumePasswordResetToken(token, newPassword) {
+  console.log('consuming token')
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
 
-//   const now = new Date();
+  const user = await prisma.user.findFirst({
+    where: {
+      passwordResetTokenHash: tokenHash,
+      passwordResetExpiresAt: {
+        gt: new Date(),
+      },
+    },
+  });
 
-//   // Convert "now" to Sydney time
-//   const sydneyNow = toZonedTime(now, timeZone);
+  if (!user) {
+    console.log('No such user')
+    return false
+  };
 
-//   // Get start/end of Sydney day
-//   const sydneyStart = startOfDay(sydneyNow);
-//   const sydneyEnd = endOfDay(sydneyNow);
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-//   // Convert back to UTC for Prisma
-//   const start = new Date(sydneyStart.toISOString());
-//   const end = new Date(sydneyEnd.toISOString());
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordHash: hashedPassword,
+      passwordResetTokenHash: null,
+      passwordResetExpiresAt: null,
+    },
+  });
+console.log('token consumed')
+  return true;
+}
 
-//   const orders = await prisma.order.findMany({
-//     where: {
-//       createdAt: {
-//         gte: start,
-//         lte: end,
-//       },
-//     },
-//     include: {
-//       user: { select: { name: true } },
-//       items: true,
-//     },
-//     orderBy: { createdAt: 'asc' },
-//   });
-
-//   return orders.map(o => ({
-//     id: o.id,
-//     userName: o.user.name,
-//     createdAt: o.createdAt,
-//     total: o.total,
-//     items: o.items.map(i => ({
-//       itemName: i.itemName,
-//       size: i.size,
-//       milk: i.milk,
-//       tea: i.tea,
-//       syrups: i.syrups ? JSON.parse(i.syrups) : [],
-//       modifiers: i.modifiers ? JSON.parse(i.modifiers) : [],
-//       extras: i.extras ? JSON.parse(i.extras) : [],
-//       topping: i.topping,
-//       sauce: i.sauce ? JSON.parse(i.sauce) : [],
-//       sugar: i.sugar,
-//       quantity: i.quantity,
-//       unitPrice: Number(i.unitPrice),
-//       lineTotal: Number(i.lineTotal),
-//     })),
-//   }));
-// }
 
 
 module.exports = {
@@ -430,5 +383,6 @@ module.exports = {
     getAllUserOrders,
     deleteLastOrder,
     getTodaysOrders,
-    updateUserPassword
+    createPasswordResetToken, 
+    consumePasswordResetToken
 }

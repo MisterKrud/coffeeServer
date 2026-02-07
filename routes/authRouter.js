@@ -4,13 +4,14 @@ const router = Router();
 const jwt = require('jsonwebtoken')
 const passport = require('../config/passport');
 const authControllers = require('../controllers/authControllers');
-const { useReducer } = require('react');
 
-// router.post('/signup', authControllers.createUser, (req, res) => {
-//     return res.json(req.user)
-// })
+
+
 
 router.post('/login', authControllers.authenticateUser)
+
+router.post('/password-reset', authControllers.requestPasswordReset)
+router.post('/password-reset/confirm', authControllers.confirmPasswordReset)
 
 
 module.exports = router

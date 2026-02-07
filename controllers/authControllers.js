@@ -4,11 +4,12 @@ const bcrypt = require("bcryptjs");
 const db = require("../db/queries");
 const jwt = require('jsonwebtoken');
 const { body, validationResult, matchedData } = require("express-validator");
+const { sendResetEmail } = require('../utils/email.js')
 
 
 const userValidator = [
   body("name").trim().notEmpty(),
-  body("email").trim().isEmail().normalizeEmail(),
+  body("email").trim().isEmail().customSanitizer((email) => email.toLowerCase()),
    body("password").trim().isLength({ min: 5 })
 ];
 
@@ -115,9 +116,48 @@ console.log("AUTH HEADER:", authHeader);
 }
 
 
+const  requestPasswordReset = async(req, res) => {
+  const { email } = req.body;
+
+  const response = {
+    message: "A reset link has been sent to you email.\n\nYou may need to check your 'Junk' folder",
+  };
+  if (!email) return res.status(200).json(response);
+
+  const token = await db.createPasswordResetToken(email);
+
+  if (token) {
+    await sendResetEmail(email, token)
+  }
+
+  return res.status(200).json(response)
+
+}
+
+async function confirmPasswordReset(req, res) {
+  const { token, newPassword } = req.body;
+  console.log('recieved password stuff:', req.body)
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: "Invalid request" });
+  }
+
+  const success = await db.consumePasswordResetToken(token, newPassword);
+
+  if (!success) {
+    return res.status(400).json({ error: "Invalid or expired token" });
+  }
+
+  return res.status(200).json({ message: "Password reset successful" });
+}
+
+
+
 module.exports = {
     authenticateUser, 
     createUser,
    authenticateJWT,
-   issueSignupToken
+   issueSignupToken,
+   requestPasswordReset,
+   confirmPasswordReset
 }
