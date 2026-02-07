@@ -1,18 +1,30 @@
 require("dotenv").config();
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
+
+const oAuth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
+
+oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    logger: true,
-    debug: true,
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_SECURE === 'false', // true for 465, false for other ports
+  service: "gmail",
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    type: "OAuth2",
+    user: process.env.SMTP_USER, // your Gmail address
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+    accessToken: async () => {
+      const { token } = await oAuth2Client.getAccessToken();
+      return token;
+    },
   },
-  family: 4
+  logger: true,
+  debug: true,
 });
 
 async function sendResetEmail(to, token) {
