@@ -15,6 +15,9 @@ model User {
   name         String
   passwordHash String
 
+  passwordResetTokenHash String?
+  passwordResetExpiresAt DateTime?
+
   // future-proofing for Google/Microsoft/Facebook auth
   googleId     String?  @unique
   microsoftId  String?  @unique
