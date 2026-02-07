@@ -36,4 +36,8 @@ router.post("/newOrder", authControllers.authenticateJWT, userControllers.submit
   // validation comes next
 });
 
+router.get("/oauth2callback", (req, res) => {
+  res.send("OAuth callback received");
+});
+
 module.exports = router;
