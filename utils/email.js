@@ -1,5 +1,4 @@
 require("dotenv").config();
-const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -10,37 +9,46 @@ const oAuth2Client = new google.auth.OAuth2(
 
 oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    type: "OAuth2",
-    user: process.env.SMTP_USER, // your Gmail address
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-    accessToken: async () => {
-      const { token } = await oAuth2Client.getAccessToken();
-      return token;
-    },
-  },
-  logger: true,
-  debug: true,
-});
+const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
 async function sendResetEmail(to, token) {
   const resetLink = `${process.env.FRONTEND_URL}reset-password?token=${token}`;
 
-  const mailOptions = {
-    from: `"DSODE Cafe Orders" <${process.env.SMTP_USER}>`,
-    to,
-    subject: 'Password Reset Request',
-    text: `You requested a password reset. Click this link to reset your password: ${resetLink}\n\nIf you didn’t request this, ignore this email.`,
-    html: `<p>You requested a password reset.</p>
-           <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-           <p>If you didn’t request this, ignore this email.</p>`,
-  };
+  // Gmail API requires the email to be a base64url encoded string
+  const subject = "Password Reset Request";
+  const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString("base64")}?=`;
+  const messageParts = [
+    `From: "DSODE Cafe Orders" <${process.env.SMTP_USER}>`,
+    `To: ${to}`,
+    "Content-Type: text/html; charset=utf-8",
+    "MIME-Version: 1.0",
+    `Subject: ${utf8Subject}`,
+    "",
+    `<p>You requested a password reset.</p>
+     <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+     <p>If you didn’t request this, ignore this email.</p>`,
+  ];
+  const message = messageParts.join("\n");
 
-  await transporter.sendMail(mailOptions);
+  // The Gmail API expects base64url encoding
+  const encodedMessage = Buffer.from(message)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  try {
+    await gmail.users.messages.send({
+      userId: "me",
+      requestBody: {
+        raw: encodedMessage,
+      },
+    });
+    console.log("Email sent successfully via Gmail API");
+  } catch (error) {
+    console.error("Gmail API Error:", error);
+    throw error;
+  }
 }
 
 module.exports = { sendResetEmail };
