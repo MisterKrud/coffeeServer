@@ -120,7 +120,7 @@ const  requestPasswordReset = async(req, res) => {
   const { email } = req.body;
 
   const response = {
-    message: "A reset link has been sent to you email.\n\nYou may need to check your 'Junk' folder",
+    message: "A reset link has been sent to you email.\n\nYou may need to check your junk folder",
   };
   if (!email) return res.status(200).json(response);
 
