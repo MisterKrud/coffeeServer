@@ -197,6 +197,7 @@ async function submitCart(userId, cartItems, total, notes) {
 
 
 function ordersMap(o) {
+  console.log(o)
     return {
     
     id: o.id,
@@ -225,8 +226,8 @@ function ordersMap(o) {
       abbrevModifiers: modifiers.map(m => modifiersAbbrev[m] ?? m),
       extras,
       abbrevExtras: extras.map(ex => extrasAbbrev[ex] ?? ex ),
-      eggs: i.eggs,
-      abbrevEggs: eggsAbbrev[i.eggs] || i.eggs,
+      eggs: i.egg,
+      abbrevEggs: eggsAbbrev[i.egg] || i.egg,
       topping: i.topping,
       abbrevTopping: toppingAbbrev[i.topping] || i.topping,
       sauce: i.sauce ? JSON.parse(i.sauce) : [],

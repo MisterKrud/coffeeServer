@@ -8,7 +8,9 @@ const coffeeAbbrev = {
   "Hot Choc": "HC",
   "White Hot Choc": "Wht HC",
   "Chai Latte": "Chai",
-  "Long Black": "Lng-black",
+  "Long Black": "Lng-blk",
+  "Iced Latte": "Ice Latte",
+  "Espresso": "Esp",
   };
 
 
@@ -32,52 +34,70 @@ const syrupsAbbrev = {
 }
 
 const milkAbbrev = {
-    "skim": "sk",
-    "almond": "alm",
-    "lacFree": "LF",
+    "Skim": "sk",
+    "Almond": "alm",
+    "Lactose Free": "LF",
+    "Oat": "oat",
+    "Soy": "soy",
+    "Full Cream": "",
+    "None": "(no milk)",
+
     
 }
 
 const foodAbbrev = {
-    "Egg & Bacon Roll": "Egg bacon roll",
+    "Egg & Bacon Roll": "Egg bac roll",
     "Avocado on toast": "Avo toast",
+    "Buttered Croissant": "Croiss",
+    "Ham & Cheese Croissant": "H&M Croiss",
+    "Ham & Cheese Toastie": "H&C Toastie",
+    "Chicken & Cheese Toastie": "Chkn-Chs Toastie",
+    "Eggs on toast": "Egg toast",
+
 }
 
 const teaAbbrev = {
     "Green": "green",
     "English breakfast": "eng-brkfst",
-    "Earl Gray": "earl-gray",
+    "Earl Grey": "earl-grey",
     "Lemon & Ginger": "lemon-ginger",
     "Peppermint": "p-mint"
 
 }
 
 const modifiersAbbrev ={ 
-    "halfShot": "1/2-str",
-    "extraShot": "es",
-    "extraHot": "extra-hot"
+    "Half-strength": "1/2-str",
+    "Extra shot": "es",
+    "Extra hot": "hot",
+    "Decaf": "decaf"
+
 }
 
 const toppingAbbrev = {
     "Fruit Jam": "jam",
     "Vegemite": "vegemite",
-    "Peanut Butter": "peanut butter",
+    "Peanut Butter": "p-butter",
     "Nutella": "nutella",
-    "Honey": "honey"
+    "Honey": "honey",
+    "None": "no-topping"
 }
 
 const extrasAbbrev={ 
-    "avocado":"avo",
-    "mushrooms": "mushroom",
-    "capsicum:": "caps",
-    "tomato": "tom",
-    "sundriedTomato": "sundrd-tom"
+    "Avocado":"avo",
+    "Mushrooms": "mush",
+    "Capsicum": "caps",
+    "Tomato": "tom",
+    "Sundried tom.": "sundrd-tom",
+    "Egg": "egg",
+    "Cheese": "cheese",
+    "Onion": "onion",
+    "Bacon": "bcn"
 }
 
 const eggsAbbrev = {
-    "Scrambled": "scr",
-    "Fried": "fr",
-    "Poached": "poach"
+    "Scrambled": "(scrmbl)",
+    "Fried": "(fried)",
+    "Poached": "(poach)"
 }
 
 
