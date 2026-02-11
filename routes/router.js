@@ -24,6 +24,8 @@ router.get('/todaysOrders',  userControllers.getTodaysOrders);
 
 router.post('/sign-up', authControllers.createUser, authControllers.issueSignupToken)
 
+router.post('/csvFile', (req, res) => res.status(201).json({message: "File received"}))
+
 
 router.post("/newOrder", authControllers.authenticateJWT, userControllers.submitCart, (req, res) => {
 
