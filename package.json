@@ -37,8 +37,10 @@
     "express-validator": "^7.3.1",
     "googleapis": "^171.4.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
     "next": "^15.5.9",
     "nodemailer": "^8.0.0",
+    "papaparse": "^5.5.3",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "pg": "^8.17.2"

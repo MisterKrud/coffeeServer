@@ -53,25 +53,16 @@ async function getAllUsers() {
    return await prisma.user.findMany()
   
 }
-//WHY IS THIS HERE WHEN IT EXISTS SOMEWHERE ELSE?
-// async function getUsersLastOrder(userId){
-//     const lastOrder = await prisma.order.findFirst({
-//         where: {
-            
-//             userId: userId
-//         },
-//         orderBy: {
-//             id: 'desc',
-//         }
-//     })
 
-//     const orderItems = await prisma.orderItem.findMany({
-//         where: {
-//             orderId: lastOrder.id
-//         }
-//     })
-//     return orderItems
-// }
+
+async function insertTransactions(transactions) {
+  const insertedTransactions = await prisma.transaction.createMany({
+    data: transactions,
+    skipDuplicates: true
+  })
+
+  return insertedTransactions
+}
 
 async function getAllUserOrders(userId){
     const userOrders = await prisma.order.findMany({
@@ -385,5 +376,6 @@ module.exports = {
     deleteLastOrder,
     getTodaysOrders,
     createPasswordResetToken, 
-    consumePasswordResetToken
+    consumePasswordResetToken,
+    insertTransactions
 }

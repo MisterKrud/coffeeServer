@@ -86,7 +86,7 @@ const authenticateUser = (req, res, next) => {
    return res.json({
     token,
     
-    user: {id: user.id, email: user.email, name: user.name},
+    user: {id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin},
    });
 
 
