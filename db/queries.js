@@ -362,6 +362,38 @@ console.log('token consumed')
   return true;
 }
 
+async function getUserBalance(userId) {
+const result =  await prisma.order.aggregate({
+    where: {
+      userId: userId
+    },
+    _sum: {
+      total: true
+    }
+  })
+  return result._sum.total || 0
+}
+
+async function addUserBalanceToTable(userId) {
+  const balance = await getUserBalance(userId); // await the sum
+  await prisma.transaction.create({
+    data: {
+      userId: userId,
+      amount: balance,
+      type: "starting balance",
+      source: "manual",  // optional, but consistent with your other transactions
+      createdAt: new Date() // optional, will default if your schema uses @default(now())
+    },
+  });
+}
+
+
+async function userLoop(){
+  for(let i=0; i<40; i++){
+    await addUserBalanceToTable(i)
+  }
+}
+
 
 
 module.exports = {
@@ -377,5 +409,6 @@ module.exports = {
     getTodaysOrders,
     createPasswordResetToken, 
     consumePasswordResetToken,
-    insertTransactions
+    insertTransactions,
+    getUserBalance
 }
