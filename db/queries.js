@@ -144,7 +144,7 @@ async function submitCart(userId, cartItems, total, notes) {
   // Sydney-local timestamp
   const createdAt = getSydneyNow();
 
-  return await prisma.order.create({
+ const submittedCart = await prisma.order.create({
     data: {
       user: { connect: { id: userId } },
       notes,
@@ -182,6 +182,25 @@ async function submitCart(userId, cartItems, total, notes) {
     },
     include: { items: true },
   });
+
+   console.log('The submitted cart:')
+   console.log(submittedCart.id)
+   console.log(-Math.round(submittedCart.total * 100))
+
+  await prisma.transactionRecord.create({
+   
+    data: {
+      orderId: submittedCart.id,
+      amount: -Math.round(submittedCart.total * 100),
+      userId: submittedCart.userId,
+      type: "order",
+      source: "app",
+      createdAt,
+
+    }
+  })
+  return submittedCart
+  
 }
 
 
