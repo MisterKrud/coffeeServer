@@ -382,16 +382,16 @@ console.log('token consumed')
 }
 
 async function getUserBalance(userId) {
-const result =  await prisma.order.aggregate({
+const result =  await prisma.transactionRecord.aggregate({
     where: {
       userId: userId
     },
     _sum: {
-      total: true
+      amount: true
     }
   })
   console.log(result)
-  return result._sum.total || 0
+  return result._sum.amount || 0
 }
 
 async function addUserBalanceToTable(userId) {
@@ -483,6 +483,7 @@ return await prisma.bankNameMapping.findMany({
     });
 
 }
+
 
 
 module.exports = {

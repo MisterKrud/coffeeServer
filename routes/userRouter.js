@@ -24,6 +24,7 @@ router.get('/allOrders',authControllers.authenticateJWT, userControllers.getAllU
     return res.json(req.userOrders)
 })
 
+router.get('/userBalance',authControllers.authenticateJWT, userControllers.getUserBalance)
 // router.put('/updatePassword', authControllers.authenticateJWT, userControllers.updatePassword, (req, res) => {
 //     return res.json(req.user)
 // })

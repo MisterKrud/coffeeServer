@@ -112,6 +112,16 @@ const getTodaysOrders = async (req, res, next) => {
   }
 }
 
+const getUserBalance = async (req, res, next) => {
+    try{
+      const balance =  await db.getUserBalance(Number(req.user.id))
+      console.log(balance)
+        res.json(balance)
+    } catch(err){
+        next(err)
+    }
+}
+
 
 module.exports = {
  
@@ -121,5 +131,6 @@ module.exports = {
     getUsersLastOrder,
     deleteLastOrder,
     getAllUserOrders,
-    getTodaysOrders
+    getTodaysOrders,
+    getUserBalance
 }
