@@ -19,7 +19,8 @@ model User {
   passwordResetExpiresAt DateTime? @default(now())
   passwordResetTokenHash String? 
   orders                 Order[]
-  transactions            Transaction[]
+  transactions            TransactionRecord[]
+  bankMappings             BankNameMapping[]
 }
 
 model Order {
@@ -30,7 +31,7 @@ model Order {
   notes     String?
   user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
-  transactions Transaction[]
+  transactions TransactionRecord[]
 }
 
 model OrderItem {
@@ -55,7 +56,7 @@ model OrderItem {
   order       Order   @relation(fields: [orderId], references: [id])
 }
 
-model Transaction {
+model TransactionRecord {
   id              Int      @id @default(autoincrement())
   orderId         Int?
   userId          Int?
@@ -66,8 +67,17 @@ model Transaction {
   rawDescription  String?
   order           Order?   @relation(fields: [orderId], references: [id])
   user            User?    @relation(fields: [userId], references: [id])
-  bankFingerprint String?
+  bankFingerprint String? @unique
   createdAt       DateTime @default(now())
 
-  @@unique([userId, bankFingerprint])
+ 
+}
+
+model BankNameMapping {
+  id       Int    @id @default(autoincrement())
+  bankName String @unique
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }

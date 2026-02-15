@@ -24,7 +24,7 @@ router.get('/todaysOrders',  userControllers.getTodaysOrders);
 
 router.post('/sign-up', authControllers.createUser, authControllers.issueSignupToken)
 
-router.post('/csvFile', (req, res) => res.status(201).json({message: "File received"}))
+
 
 
 router.post("/newOrder", authControllers.authenticateJWT, userControllers.submitCart, (req, res) => {
@@ -47,7 +47,7 @@ router.get("/oauth2callback", async (req, res) => {
     const response = await axios.post(
       "https://oauth2.googleapis.com/token",
       {
-        code,
+        
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         redirect_uri: process.env.GOOGLE_REDIRECT_URI,

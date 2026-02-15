@@ -56,7 +56,7 @@ async function getAllUsers() {
 
 
 async function insertTransactions(transactions) {
-  const insertedTransactions = await prisma.transaction.createMany({
+  const insertedTransactions = await prisma.transactionRecord.createMany({
     data: transactions,
     skipDuplicates: true
   })
@@ -371,12 +371,13 @@ const result =  await prisma.order.aggregate({
       total: true
     }
   })
+  console.log(result)
   return result._sum.total || 0
 }
 
 async function addUserBalanceToTable(userId) {
   const balance = await getUserBalance(userId); // await the sum
-  await prisma.transaction.create({
+  await prisma.transactionRecord.create({
     data: {
       userId: userId,
       amount: balance,
@@ -388,12 +389,81 @@ async function addUserBalanceToTable(userId) {
 }
 
 
-async function userLoop(){
-  for(let i=0; i<40; i++){
-    await addUserBalanceToTable(i)
+async function addAllStartingBalances() {
+  // const users = await prisma.user.findMany({ select: { id: true } });
+  
+  const users = await prisma.user.findMany();
+  for (const user of users) {
+    const balance = await getUserBalance(user.id); // safe: returns 0 if no orders
+    if (balance === 0) continue; // optional: skip zero balances
+
+    await prisma.transactionRecord.create({
+      data: {
+        userId: user.id,
+        amount: balance,
+        type: "starting balance",
+        source: "manual",
+        createdAt: new Date()
+      },
+    });
   }
+
+  console.log("All starting balances added.");
 }
 
+
+
+async function assignTransactionToUser(transactionId, userId, bankName) {
+  // Upsert mapping so duplicates don’t break things
+  console.log('assignTransaction params', transactionId, userId, bankName)
+  console.log(typeof(userId), typeof(transactionId))
+  await prisma.bankNameMapping.upsert({
+    where: { bankName },           // unique constraint on bankName
+    update: { userId },            // if exists, update userId (rare case)
+    create: { bankName, userId }   // if not exists, create
+  });
+
+  // Assign the transaction to the user
+  return await prisma.transactionRecord.update({
+    where: { id: transactionId },
+    data: { userId }
+  });
+}
+
+
+
+async function getUnmatchedDeposits(){
+  return await prisma.transactionRecord.findMany({
+    where: {
+      type: "deposit",
+      userId: null
+    },
+    orderBy: {createdAt: "desc"}
+  });
+}
+async function updateTransactionRecords(mapping) {
+await prisma.transactionRecord.updateMany({
+        where: {
+          userId: null,
+          type: "deposit",
+          rawDescription: {
+            contains: mapping.bankName,
+            mode: "insensitive" // important for Postgres
+          }
+        },
+        data: {
+          userId: mapping.userId
+        }
+      });
+    }
+
+async function mapBankNames(){
+// async function mapBankNames(bankNames){
+return await prisma.bankNameMapping.findMany({
+      // where: { bankName: { in: bankNames } }
+    });
+
+}
 
 
 module.exports = {
@@ -410,5 +480,10 @@ module.exports = {
     createPasswordResetToken, 
     consumePasswordResetToken,
     insertTransactions,
-    getUserBalance
+    getUserBalance,
+    addAllStartingBalances,
+    assignTransactionToUser,
+    getUnmatchedDeposits,
+    updateTransactionRecords,
+    mapBankNames
 }
