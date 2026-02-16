@@ -497,15 +497,18 @@ async function getUserTransactions(userId){
 }
 
 async function getUserBalances() {
-  return await prisma.transactionRecord.groupBy({
-    by:['userId'],
-    _sum: {amount: true}
-  })
+  return await prisma.$queryRaw`
+    SELECT u.id,
+           u.name,
+           u.email,
+           SUM(t.amount)::INT AS balance
+    FROM "User" u
+    JOIN "TransactionRecord" t
+      ON u.id = t."userId"
+    GROUP BY u.id, u.name, u.email
+    ORDER BY u.name ASC
+  `;
 }
-// const aggregatedTransactions = await prisma.transactionRecord.groupBy({
-//   by: ['userId'],
-//   _sum: { amount: true },
-// });
 
 
 

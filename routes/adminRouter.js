@@ -11,7 +11,7 @@ const upload = multer({storage: storage});
 router.use(authControllers.authenticateJWT)
 router.use(adminControllers.isAdmin)
 
-router.get('/allUsers', adminControllers.getAllUsers)
+router.get('/allUsers', adminControllers.getUserBalances)
 router.post('/csvFile', upload.single("file"), adminControllers.uploadCsvController)
 router.get('/userBalance', adminControllers.getUserBalance)
 

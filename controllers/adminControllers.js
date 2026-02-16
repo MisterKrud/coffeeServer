@@ -167,6 +167,13 @@ const getUserBalance = async (req, res, next) => {
     }
 }
 
+const getUserBalances = async (req, res, next) => {
+    const userBalances = await db.getUserBalances()
+    console.log('user balances', userBalances)
+    res.json(userBalances)
+    next()
+}
+
 module.exports = {
     getAllUsers,
     getTodaysOrders,
@@ -176,5 +183,6 @@ module.exports = {
     getUnmatchedDeposits,
     getUserTransactions,
     getUserBalance,
+    getUserBalances,
     isAdmin
 }
