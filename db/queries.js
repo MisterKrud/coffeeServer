@@ -388,7 +388,8 @@ const result =  await prisma.transactionRecord.aggregate({
     },
     _sum: {
       amount: true
-    }
+    },
+    
   })
   console.log(result)
   return result._sum.amount || 0
@@ -484,6 +485,28 @@ return await prisma.bankNameMapping.findMany({
 
 }
 
+async function getUserTransactions(userId){
+  return await prisma.transactionRecord.findMany({
+    where:{
+      userId: userId
+    },
+    include:{
+      user: true
+    }
+  })
+}
+
+async function getUserBalances() {
+  return await prisma.transactionRecord.groupBy({
+    by:['userId'],
+    _sum: {amount: true}
+  })
+}
+// const aggregatedTransactions = await prisma.transactionRecord.groupBy({
+//   by: ['userId'],
+//   _sum: { amount: true },
+// });
+
 
 
 module.exports = {
@@ -505,5 +528,9 @@ module.exports = {
     assignTransactionToUser,
     getUnmatchedDeposits,
     updateTransactionRecords,
-    mapBankNames
+    getUserTransactions,
+    mapBankNames,
+    getUserBalances
+  
+ 
 }

@@ -3,12 +3,24 @@ const db = require("../db/queries");
 const multer = require('multer');
 const Papa = require("papaparse")
 const { generateBankFingerPrint } = require('../utils/bankImport');
+
 const { default: next } = require("next");
 
 
-const getAllUsers = async(req, res, next) => {
+const isAdmin = async(req, res, next) => {
+
+    console.log('admin status:', req.user)
+        if(!req.user) return res.sendStatus(401);
+      //  if (!req.user.isAdmin) return res.sendStatus(403)
+            next()
+    }
+
+
+
+const getAllUsers= async(req, res, next) => {
    try{ const allUsers = await db.getAllUsers();
     req.allUsers = allUsers;
+    console.log('all users', allUsers)
      res.json(allUsers)
     next()
    } catch(err) {
@@ -23,9 +35,7 @@ const getTodaysOrders = async(req, res, next) => {
     console.log(todaysOrders)
    req.todaysOrders =   todaysOrders
    console.log(req.todaysOrders)
-    res.render('/', {
-        orders: req.todaysOrders
-    })
+    res.json(todaysOrders)
     next()
    }
    catch(err){
@@ -139,6 +149,23 @@ const getUnmatchedDeposits = async(req, res) => {
     res.json(deposits)
 }
 
+const getUserTransactions =  async(req, res, next) => {
+    const {userId} = req.query
+    const userTransactions = await db.getUserTransactions(userId);
+    res.json(userTransactions);
+    next()
+}
+
+const getUserBalance = async (req, res, next) => {
+    try{
+         const {userId} = req.query
+      const balance =  await db.getUserBalance(Number(userId))
+      console.log(balance)
+        res.json(balance)
+    } catch(err){
+        next(err)
+    }
+}
 
 module.exports = {
     getAllUsers,
@@ -146,5 +173,8 @@ module.exports = {
     uploadCsvController,
     getAllStartingBalances,
     assignTransactionToUser,
-    getUnmatchedDeposits
+    getUnmatchedDeposits,
+    getUserTransactions,
+    getUserBalance,
+    isAdmin
 }
