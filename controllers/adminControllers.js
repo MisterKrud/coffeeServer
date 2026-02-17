@@ -11,7 +11,7 @@ const isAdmin = async(req, res, next) => {
 
     console.log('admin status:', req.user)
         if(!req.user) return res.sendStatus(401);
-      //  if (!req.user.isAdmin) return res.sendStatus(403)
+       if (!req.user.isAdmin) return res.sendStatus(403)
             next()
     }
 
@@ -145,8 +145,12 @@ const assignTransactionToUser = async (req, res, next) => {
 
 
 const getUnmatchedDeposits = async(req, res) => {
+    try{
     const deposits = await db.getUnmatchedDeposits();
     res.json(deposits)
+    } catch(err) {
+        next(err)
+    }
 }
 
 const getUserTransactions =  async(req, res, next) => {

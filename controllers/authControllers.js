@@ -78,7 +78,7 @@ const authenticateUser = (req, res, next) => {
         }
 
    const token = jwt.sign(
-    {id: user.id, email: user.email},
+    {id: user.id, email: user.email, isAdmin: user.isAdmin},
     process.env.JWT_SECRET,
     { expiresIn: '30d'}
    );
@@ -102,14 +102,15 @@ const authenticateJWT = (req, res, next) => {
   const token = authHeader.split(' ')[1]
 console.log("AUTH HEADER:", authHeader);
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, async(err, decoded) => {
     if (err) {
     const authError = new Error('Forbidden: Invalid token');
     authError.status = 403;
     return next(authError);
   }
-
-  req.user = user;
+    const dbUser = await db.getUserById(decoded.id);
+  if (!dbUser) return res.sendStatus(401);
+  req.user = dbUser;
   console.log('logged user: ', req.user)
   next();
   })
