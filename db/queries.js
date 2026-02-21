@@ -171,7 +171,7 @@ async function submitCart(userId, cartItems, total, notes) {
             syrups: item.syrups ? JSON.stringify(item.syrups) : null,
             extras: item.extras ? JSON.stringify(item.extras) : null,
             modifiers: item.modifiers ? JSON.stringify(item.modifiers) : null,
-            sauce: item.sauce ? JSON.stringify(item.sauce) : null,
+            sauce: item.sauce ?? null,
             orderedFor: item.orderedFor,
             quantity,
             unitPrice,
@@ -240,7 +240,7 @@ function ordersMap(o) {
       abbrevEggs: eggsAbbrev[i.egg] || i.egg,
       topping: i.topping,
       abbrevTopping: toppingAbbrev[i.topping] || i.topping,
-      sauce: i.sauce ? JSON.parse(i.sauce) : [],
+      sauce: i.sauce,
       sugar: i.sugar,
       quantity: i.quantity,
       unitPrice: Number(i.unitPrice),
@@ -297,21 +297,20 @@ async function getTodaysOrders() {
 
 // Get all orders for a specific user placed today
 async function getUsersLastOrder(userId) {
-  const start = getSydneyStartOfToday();
-
-  const orders = await prisma.order.findMany({
+ 
+  const order = await prisma.order.findFirst({
     where: {
       userId,
-      createdAt: { gte: start }, // user’s orders from today
+       // user’s orders from today
     },
     include: {
-      user: { select: { name: true } },
+      // user: { select: { name: true } },
       items: true,
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: 'desc' },
   });
 
-  return orders.map(ordersMap);
+  return order;
 }
 
 

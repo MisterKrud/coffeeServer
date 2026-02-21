@@ -62,6 +62,7 @@ const submitCart = async (req, res, next) => {
 }
 
 const getUsersLastOrder = async(req, res, next) => {
+    console.log('Getting last order for user')
     try{
     const id = Number(req.user.id)
     const  lastOrder = await db.getUsersLastOrder(id)
@@ -71,6 +72,7 @@ const getUsersLastOrder = async(req, res, next) => {
         return next(error)
     }
         req.lastOrder = lastOrder
+        console.log(req.lastOrder)
     next()
     } catch(err){
         next(err)

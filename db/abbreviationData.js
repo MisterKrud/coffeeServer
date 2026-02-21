@@ -46,10 +46,10 @@ const milkAbbrev = {
 }
 
 const foodAbbrev = {
-    "Egg & Bacon Roll": "Egg bac roll",
+    "Egg & Bacon Roll": "Egg-bcn roll",
     "Avocado on toast": "Avo toast",
     "Buttered Croissant": "Croiss",
-    "Ham & Cheese Croissant": "H&M Croiss",
+    "Ham & Cheese Croissant": "H&C Croiss",
     "Ham & Cheese Toastie": "H&C Toastie",
     "Chicken & Cheese Toastie": "Chkn-Chs Toastie",
     "Eggs on toast": "Egg toast",
