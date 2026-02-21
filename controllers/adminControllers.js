@@ -59,6 +59,7 @@ const getAllStartingBalances = async(req, res, next) => {
 
 
 
+
 const uploadCsvController = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -144,7 +145,7 @@ const assignTransactionToUser = async (req, res, next) => {
 
 
 
-const getUnmatchedDeposits = async(req, res) => {
+const getUnmatchedDeposits = async(req, res, next) => {
     try{
     const deposits = await db.getUnmatchedDeposits();
     res.json(deposits)
@@ -178,6 +179,59 @@ const getUserBalances = async (req, res, next) => {
     next()
 }
 
+
+const getUserTable = async (req, res, next) => {
+    try{
+    const userTable = await db.getUserTable()
+    res.json(userTable)
+
+    } catch(err){
+        next(err)
+    }
+}
+
+const getOrderTable = async (req, res, next) => {
+    try{
+    const orderTable = await db.getOrderTable()
+    res.json(orderTable)
+
+    } catch(err){
+        next(err)
+    }
+}
+
+const getOrderItemTable = async (req, res, next) => {
+    try{
+    const orderItemTable = await db.getOrderItemsTable()
+    res.json(orderItemTable)
+
+    } catch(err){
+        next(err)
+    }
+}
+
+const getTransactionTable = async (req, res, next) => {
+    try{
+    const transactionTable = await db.getTransactionsTable()
+    res.json(transactionTable)
+
+    } catch(err){
+        next(err)
+    }
+}
+
+const getUserPurchases = async (req, res, next) => {
+    try{
+    const userPurchasesTable = await db.getUserPurchases()
+    res.json(userPurchasesTable)
+
+    } catch(err){
+        next(err)
+    }
+}
+
+
+
 module.exports = {
     getAllUsers,
     getTodaysOrders,
@@ -188,5 +242,10 @@ module.exports = {
     getUserTransactions,
     getUserBalance,
     getUserBalances,
+    getUserTable,
+    getOrderTable,
+    getOrderItemTable,
+    getTransactionTable,
+    getUserPurchases,
     isAdmin
 }

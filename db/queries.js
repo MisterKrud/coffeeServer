@@ -510,6 +510,67 @@ async function getUserBalances() {
 }
 
 
+async function getUserTable() {
+  return await prisma.$queryRaw`
+  SELECT * FROM "User"`;
+}
+
+async function getOrderItemsTable(){
+  return await prisma.$queryRaw`
+  SELECT * FROM "OrderItem"`;
+}
+
+async function getOrderTable(){
+  return await prisma.$queryRaw`
+  SELECT * FROM "Order"`;
+}
+
+async function getOrderItemsTable(){
+  return await prisma.$queryRaw`
+  SELECT * FROM "OrderItem"`;
+}
+
+async function getTransactionsTable(){
+  return await prisma.$queryRaw`
+  SELECT * FROM "TransactionRecord"`
+  }
+
+async function getUserPurchases() {
+  return await prisma.$queryRaw`
+    SELECT  u.id as id,
+            u.name as username,
+            u.email as email,
+            o."createdAt" as "createdAt",
+            o.total as total,
+            o.id as "orderId",
+            oi.id as "itemId",
+            oi."itemName" as item
+    FROM "User" u
+    JOIN "Order" o ON o."userId" = u.id
+    JOIN "OrderItem" oi ON o.id = oi."orderId"
+    
+    ORDER BY o."createdAt"
+  `
+}
+
+async function getUserTransactionHistory(usersid) {
+  return await prisma.$queryRaw`
+    SELECT  u.id as "userId",
+            u.name as username,
+            u.email as email,
+            t.type as "transactionType",
+            t.amount as amount,
+            t."createdAt" as timedate
+    FROM "User" u
+    JOIN "TransactionRecord" t 
+      ON u.id = t."userId"
+    WHERE u.id = ${usersid}
+    ORDER BY t."createdAt"
+  `
+}
+
+
+
 
 module.exports = {
     createUser,
@@ -532,7 +593,13 @@ module.exports = {
     updateTransactionRecords,
     getUserTransactions,
     mapBankNames,
-    getUserBalances
+    getUserBalances,
+    getUserTable,
+    getOrderTable,
+    getOrderItemsTable,
+    getTransactionsTable,
+    getUserPurchases,
+    getUserTransactionHistory
   
  
 }

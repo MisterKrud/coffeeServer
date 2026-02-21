@@ -15,6 +15,12 @@ router.get('/allUsers', adminControllers.getUserBalances)
 router.post('/csvFile', upload.single("file"), adminControllers.uploadCsvController)
 router.get('/userBalance', adminControllers.getUserBalance)
 
+router.get('/userTable', adminControllers.getUserTable)
+router.get('/orderTable', adminControllers.getOrderTable)
+router.get('/orderItemTable', adminControllers.getOrderItemTable)
+router.get('/transactionTable', adminControllers.getTransactionTable)
+router.get('/userPurchases', adminControllers.getUserPurchases)
+
 // router.post('/csvFileDebug', upload.single('file'), (req, res) => {
 //   console.log('---DEBUG ROUTE HIT---');
 //   console.log('req.body:', req.body);
