@@ -1,5 +1,5 @@
 require("dotenv").config();
-const db = require("../db/queries");
+const db = require("../db/adminQueries");
 const multer = require('multer');
 const Papa = require("papaparse")
 const { generateBankFingerPrint } = require('../utils/bankImport');
@@ -29,6 +29,7 @@ const getAllUsers= async(req, res, next) => {
 }
 
 
+//Probably doesn't need to be here - already exists in userControllers
 const getTodaysOrders = async(req, res, next) => {
    try{
     const todaysOrders = await db.getTodaysOrders()
@@ -109,7 +110,7 @@ const uploadCsvController = async (req, res, next) => {
     // Insert transactions
     await db.insertTransactions(transactionsToInsert);
 
-    // 🔥 NEW: Auto-assign using substring matching
+    // Auto-assign using substring matching
     const mappings = await db.mapBankNames();
    console.log('running auto assignment')
     for (const mapping of mappings) {
@@ -230,15 +231,38 @@ const getUserPurchases = async (req, res, next) => {
     }
 }
 
+const getTransactionHistory = async (req, res, next) => {
+    try {
+        const { userId, startDate, endDate } = req.query
+        const transactionHistory = await db.getTransactionHistory(userId, startDate, endDate)
+        res.json(transactionHistory)
+    } catch(err) {
+        next(err)
+    }
+}
+
+const removeOrderFromDataBase = async(req, res, next) => {
+    try{
+        const orderId  = Number(req.query.orderId);
+        if (!orderId) {
+  return res.status(400).json({ error: "Invalid orderId" });
+}
+        const deleteOrder = await db.removeOrderFromDataBase(orderId);
+        res.json(deleteOrder)
+    } catch(err){
+        next(err)
+    }
+}
+
 
 
 module.exports = {
-    getAllUsers,
-    getTodaysOrders,
+    getAllUsers, 
+    getTodaysOrders, 
     uploadCsvController,
     getAllStartingBalances,
     assignTransactionToUser,
-    getUnmatchedDeposits,
+    getUnmatchedDeposits, 
     getUserTransactions,
     getUserBalance,
     getUserBalances,
@@ -247,5 +271,7 @@ module.exports = {
     getOrderItemTable,
     getTransactionTable,
     getUserPurchases,
+    getTransactionHistory,
+    removeOrderFromDataBase,
     isAdmin
 }
