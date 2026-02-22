@@ -1,157 +1,140 @@
-
 const prisma = require("../lib/prisma.js");
 const crypto = require("crypto");
-const { startOfDay, endOfDay } = require("date-fns");
-const bcrypt = require("bcryptjs")
+const bcrypt = require("bcryptjs");
 
-const {  utcToZonedTime } = require("date-fns-tz");
-const {sizeAbbrev, toppingAbbrev, syrupsAbbrev, eggsAbbrev, coffeeAbbrev, foodAbbrev, milkAbbrev, teaAbbrev, modifiersAbbrev, extrasAbbrev} = require("./abbreviationData")
+const {
+  sizeAbbrev,
+  toppingAbbrev,
+  syrupsAbbrev,
+  eggsAbbrev,
+  coffeeAbbrev,
+  foodAbbrev,
+  milkAbbrev,
+  teaAbbrev,
+  modifiersAbbrev,
+  extrasAbbrev,
+} = require("./abbreviationData");
 
-async function createUser(email, name, password){
-    const normalizedEmail = email.trim().toLowerCase();
-    const user = await prisma.user.create({
-        data: {
-            name: name,
-            email: normalizedEmail,
-            passwordHash: password,
-        }
-    })
-    return user
+async function createUser(email, name, password) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await prisma.user.create({
+    data: {
+      name: name,
+      email: normalizedEmail,
+      passwordHash: password,
+    },
+  });
+  return user;
 }
 
 async function updateUserPassword(userId, newPassword) {
-    return await prisma.user.update({
-        where: {
-            id: userId,
-        },
-        data: {
-            hashedPassword: newPassword
-        }
-    })
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      hashedPassword: newPassword,
+    },
+  });
 }
 
-async function getUserByEmail(email){
+async function getUserByEmail(email) {
   const normalizedEmail = email.trim().toLowerCase();
-    const user = await prisma.user.findUnique({
-        where: {
-            email: normalizedEmail
-        }
-    })
-    return user
+  const user = await prisma.user.findUnique({
+    where: {
+      email: normalizedEmail,
+    },
+  });
+  return user;
 }
 
 async function getUserById(id) {
-    const user = await prisma.user.findUnique({
-        where: {
-            id: id
-        }
-    })
-    return user
+  const user = await prisma.user.findUnique({
+    where: {
+      id: id,
+    },
+  });
+  return user;
 }
 
-async function getAllUsers() {
-   return await prisma.user.findMany()
-  
+async function getAllUserOrders(userId) {
+  const userOrders = await prisma.order.findMany({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      id: "desc",
+    },
+    include: {
+      items: true,
+    },
+  });
+
+  return userOrders;
 }
 
+async function deleteLastOrder(userId) {
+  const lastOrder = await prisma.order.findFirst({
+    where: {
+      userId: userId,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
 
-async function insertTransactions(transactions) {
-  const insertedTransactions = await prisma.transactionRecord.createMany({
-    data: transactions,
-    skipDuplicates: true
-  })
+  await prisma.orderItem.deleteMany({
+    where: {
+      orderId: lastOrder.id,
+    },
+  });
 
-  return insertedTransactions
+  await prisma.order.delete({
+    where: {
+      id: lastOrder.id,
+    },
+  });
 }
-
-async function getAllUserOrders(userId){
-    const userOrders = await prisma.order.findMany({
-      
-       
-        where: {
-            userId: userId
-        },
-        orderBy: {
-            id: 'asc',
-        },
-        include: {
-            items: true
-        }
-    })
-
-    return userOrders
-}
-
-
-async function deleteLastOrder(userId){
-    const lastOrder = await prisma.order.findFirst({
-        where: {
-            userId: userId
-        },
-        orderBy: {
-            id: 'asc'
-        }
-    })
-
-    await prisma.orderItem.deleteMany({
-        where: {
-            orderId: lastOrder.id
-        }
-    })
-
-    await prisma.order.delete({
-        where: {
-            id: lastOrder.id
-        }
-    })
-
-}
-
-
-
-
-
 
 //Helper to get Sydney current time
 function getSydneyNow() {
   const now = new Date();
 
   // Get Sydney time components using Intl.DateTimeFormat
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Australia/Sydney',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
   }).formatToParts(now);
 
-  const y = Number(parts.find(p => p.type === 'year').value);
-  const m = Number(parts.find(p => p.type === 'month').value);
-  const d = Number(parts.find(p => p.type === 'day').value);
-  const h = Number(parts.find(p => p.type === 'hour').value);
-  const min = Number(parts.find(p => p.type === 'minute').value);
-  const s = Number(parts.find(p => p.type === 'second').value);
+  const y = Number(parts.find((p) => p.type === "year").value);
+  const m = Number(parts.find((p) => p.type === "month").value);
+  const d = Number(parts.find((p) => p.type === "day").value);
+  const h = Number(parts.find((p) => p.type === "hour").value);
+  const min = Number(parts.find((p) => p.type === "minute").value);
+  const s = Number(parts.find((p) => p.type === "second").value);
 
   // Construct a valid JS Date in UTC that represents Sydney local time
   return new Date(Date.UTC(y, m - 1, d, h, min, s));
 }
 
-
 async function submitCart(userId, cartItems, total, notes) {
   // Sydney-local timestamp
   const createdAt = getSydneyNow();
 
- const submittedCart = await prisma.order.create({
+  const submittedCart = await prisma.order.create({
     data: {
       user: { connect: { id: userId } },
       notes,
       total,
       createdAt, // explicitly set Sydney-local timestamp
       items: {
-        create: cartItems.map(item => {
+        create: cartItems.map((item) => {
           const unitPrice = Number(item.unitPrice);
           const quantity = Number(item.quantity);
 
@@ -183,12 +166,11 @@ async function submitCart(userId, cartItems, total, notes) {
     include: { items: true },
   });
 
-   console.log('The submitted cart:')
-   console.log(submittedCart.id)
-   console.log(-Math.round(submittedCart.total * 100))
+  console.log("The submitted cart:");
+  console.log(submittedCart.id);
+  console.log(-Math.round(submittedCart.total * 100));
 
   await prisma.transactionRecord.create({
-   
     data: {
       orderId: submittedCart.id,
       amount: -Math.round(submittedCart.total * 100),
@@ -196,65 +178,55 @@ async function submitCart(userId, cartItems, total, notes) {
       type: "order",
       source: "app",
       createdAt,
-
-    }
-  })
-  return submittedCart
-  
+    },
+  });
+  return submittedCart;
 }
 
-
-
-
 function ordersMap(o) {
-  console.log(o)
-    return {
-    
+  console.log(o);
+  return {
     id: o.id,
     userName: o.user.name,
     userEmail: o.user.email,
     createdAt: o.createdAt,
     total: o.total,
     notes: o.notes,
-    items: o.items.map(i => {
-    const syrups = i.syrups ? JSON.parse(i.syrups) : [];
-    const modifiers= i.modifiers ? JSON.parse(i.modifiers) : [];
-    const extras = i.extras ? JSON.parse(i.extras) : [];
-   
-    return{
-      itemName: i.itemName,
-      abbrevName: coffeeAbbrev[i.itemName] || foodAbbrev[i.itemName] || i.itemName,
-      size: i.size,
-      abbrevSize: sizeAbbrev[i.size] || i.size,
-      milk: i.milk,
-      abbrevMilk: milkAbbrev[i.milk] || i.milk,
-      tea: i.tea,
-      abbrevTea: teaAbbrev[i.tea] || i.tea,
-      syrups,
-      abbrevSyrups: syrups.map(s => syrupsAbbrev[s] ?? s),
-      modifiers,
-      abbrevModifiers: modifiers.map(m => modifiersAbbrev[m] ?? m),
-      extras,
-      abbrevExtras: extras.map(ex => extrasAbbrev[ex] ?? ex ),
-      eggs: i.egg,
-      abbrevEggs: eggsAbbrev[i.egg] || i.egg,
-      topping: i.topping,
-      abbrevTopping: toppingAbbrev[i.topping] || i.topping,
-      sauce: i.sauce,
-      sugar: i.sugar,
-      quantity: i.quantity,
-      unitPrice: Number(i.unitPrice),
-      lineTotal: Number(i.lineTotal),
-      orderedFor: i.orderedFor,
-    
-    }
-    })}
+    items: o.items.map((i) => {
+      const syrups = i.syrups ? JSON.parse(i.syrups) : [];
+      const modifiers = i.modifiers ? JSON.parse(i.modifiers) : [];
+      const extras = i.extras ? JSON.parse(i.extras) : [];
+
+      return {
+        itemName: i.itemName,
+        abbrevName:
+          coffeeAbbrev[i.itemName] || foodAbbrev[i.itemName] || i.itemName,
+        size: i.size,
+        abbrevSize: sizeAbbrev[i.size] || i.size,
+        milk: i.milk,
+        abbrevMilk: milkAbbrev[i.milk] || i.milk,
+        tea: i.tea,
+        abbrevTea: teaAbbrev[i.tea] || i.tea,
+        syrups,
+        abbrevSyrups: syrups.map((s) => syrupsAbbrev[s] ?? s),
+        modifiers,
+        abbrevModifiers: modifiers.map((m) => modifiersAbbrev[m] ?? m),
+        extras,
+        abbrevExtras: extras.map((ex) => extrasAbbrev[ex] ?? ex),
+        eggs: i.egg,
+        abbrevEggs: eggsAbbrev[i.egg] || i.egg,
+        topping: i.topping,
+        abbrevTopping: toppingAbbrev[i.topping] || i.topping,
+        sauce: i.sauce,
+        sugar: i.sugar,
+        quantity: i.quantity,
+        unitPrice: Number(i.unitPrice),
+        lineTotal: Number(i.lineTotal),
+        orderedFor: i.orderedFor,
+      };
+    }),
+  };
 }
-
-
-// db/orders.js
-
-
 
 // Utility to get Sydney midnight in UTC for DB query
 // Compute Sydney midnight in UTC for queries
@@ -262,20 +234,19 @@ function ordersMap(o) {
 function getSydneyStartOfToday() {
   const now = new Date();
 
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Australia/Sydney',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).formatToParts(now);
 
-  const y = parts.find(p => p.type === 'year').value;
-  const m = parts.find(p => p.type === 'month').value;
-  const d = parts.find(p => p.type === 'day').value;
+  const y = parts.find((p) => p.type === "year").value;
+  const m = parts.find((p) => p.type === "month").value;
+  const d = parts.find((p) => p.type === "day").value;
 
   return new Date(`${y}-${m}-${d}T00:00:00`);
 }
-
 
 // Get all orders placed today (from Sydney midnight onward)
 async function getTodaysOrders() {
@@ -289,7 +260,7 @@ async function getTodaysOrders() {
       user: { select: { name: true, email: true } },
       items: true,
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
   });
 
   return orders.map(ordersMap);
@@ -297,42 +268,39 @@ async function getTodaysOrders() {
 
 // Get all orders for a specific user placed today
 async function getUsersLastOrder(userId) {
- 
   const order = await prisma.order.findFirst({
     where: {
       userId,
-       // user’s orders from today
+      // user’s orders from today
     },
     include: {
       // user: { select: { name: true } },
       items: true,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 
   return order;
 }
 
-
 //Reset Password
+
+//This should be split and the non query section moved to controllers (authControllers)
 async function createPasswordResetToken(email) {
   const normalizedEmail = email.trim().toLowerCase();
-  console.log('request password reset start')
+  console.log("request password reset start");
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
     select: { id: true },
   });
 
-    if (!user) {
-    console.log('No such user')
-    return null
-  };
+  if (!user) {
+    console.log("No such user");
+    return null;
+  }
 
   const rawToken = crypto.randomBytes(32).toString("hex");
-  const tokenHash = crypto
-    .createHash("sha256")
-    .update(rawToken)
-    .digest("hex");
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
 
   await prisma.user.update({
     where: { id: user.id },
@@ -341,16 +309,14 @@ async function createPasswordResetToken(email) {
       passwordResetExpiresAt: new Date(Date.now() + 1000 * 60 * 30),
     },
   });
-  console.log('token created')
+  console.log("token created");
   return rawToken;
 }
 
+//This should be split and the non query section moved to controllers (authControllers)
 async function consumePasswordResetToken(token, newPassword) {
-  console.log('consuming token')
-  const tokenHash = crypto
-    .createHash("sha256")
-    .update(token)
-    .digest("hex");
+  console.log("consuming token");
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
   const user = await prisma.user.findFirst({
     where: {
@@ -362,9 +328,9 @@ async function consumePasswordResetToken(token, newPassword) {
   });
 
   if (!user) {
-    console.log('No such user')
-    return false
-  };
+    console.log("No such user");
+    return false;
+  }
 
   const hashedPassword = await bcrypt.hash(newPassword, 12);
 
@@ -376,22 +342,21 @@ async function consumePasswordResetToken(token, newPassword) {
       passwordResetExpiresAt: null,
     },
   });
-console.log('token consumed')
+  console.log("token consumed");
   return true;
 }
 
 async function getUserBalance(userId) {
-const result =  await prisma.transactionRecord.aggregate({
+  const result = await prisma.transactionRecord.aggregate({
     where: {
-      userId: userId
+      userId: userId,
     },
     _sum: {
-      amount: true
+      amount: true,
     },
-    
-  })
-  console.log(result)
-  return result._sum.amount || 0
+  });
+  console.log(result);
+  return result._sum.amount || 0;
 }
 
 async function addUserBalanceToTable(userId) {
@@ -401,156 +366,21 @@ async function addUserBalanceToTable(userId) {
       userId: userId,
       amount: balance,
       type: "starting balance",
-      source: "manual",  // optional, but consistent with your other transactions
-      createdAt: new Date() // optional, will default if your schema uses @default(now())
+      source: "manual", // optional, but consistent with your other transactions
+      createdAt: new Date(), // optional, will default if your schema uses @default(now())
     },
   });
 }
 
-
-async function addAllStartingBalances() {
-  // const users = await prisma.user.findMany({ select: { id: true } });
-  
-  const users = await prisma.user.findMany();
-  for (const user of users) {
-    const balance = await getUserBalance(user.id); // safe: returns 0 if no orders
-    if (balance === 0) continue; // optional: skip zero balances
-
-    await prisma.transactionRecord.create({
-      data: {
-        userId: user.id,
-        amount: balance,
-        type: "starting balance",
-        source: "manual",
-        createdAt: new Date()
-      },
-    });
-  }
-
-  console.log("All starting balances added.");
-}
-
-
-
-async function assignTransactionToUser(transactionId, userId, bankName) {
-  // Upsert mapping so duplicates don’t break things
-  console.log('assignTransaction params', transactionId, userId, bankName)
-  console.log(typeof(userId), typeof(transactionId))
-  await prisma.bankNameMapping.upsert({
-    where: { bankName },           // unique constraint on bankName
-    update: { userId },            // if exists, update userId (rare case)
-    create: { bankName, userId }   // if not exists, create
-  });
-
-  // Assign the transaction to the user
-  return await prisma.transactionRecord.update({
-    where: { id: transactionId },
-    data: { userId }
-  });
-}
-
-
-
-async function getUnmatchedDeposits(){
+async function getUserTransactions(userId) {
   return await prisma.transactionRecord.findMany({
     where: {
-      type: "deposit",
-      userId: null
+      userId: userId,
     },
-    orderBy: {createdAt: "desc"}
+    include: {
+      user: true,
+    },
   });
-}
-async function updateTransactionRecords(mapping) {
-await prisma.transactionRecord.updateMany({
-        where: {
-          userId: null,
-          type: "deposit",
-          rawDescription: {
-            contains: mapping.bankName,
-            mode: "insensitive" // important for Postgres
-          }
-        },
-        data: {
-          userId: mapping.userId
-        }
-      });
-    }
-
-async function mapBankNames(){
-// async function mapBankNames(bankNames){
-return await prisma.bankNameMapping.findMany({
-      // where: { bankName: { in: bankNames } }
-    });
-
-}
-
-async function getUserTransactions(userId){
-  return await prisma.transactionRecord.findMany({
-    where:{
-      userId: userId
-    },
-    include:{
-      user: true
-    }
-  })
-}
-
-async function getUserBalances() {
-  return await prisma.$queryRaw`
-    SELECT u.id,
-           u.name,
-           u.email,
-           SUM(t.amount)::INT AS balance
-    FROM "User" u
-    JOIN "TransactionRecord" t
-      ON u.id = t."userId"
-    GROUP BY u.id, u.name, u.email
-    ORDER BY u.name ASC
-  `;
-}
-
-
-async function getUserTable() {
-  return await prisma.$queryRaw`
-  SELECT * FROM "User"`;
-}
-
-async function getOrderItemsTable(){
-  return await prisma.$queryRaw`
-  SELECT * FROM "OrderItem"`;
-}
-
-async function getOrderTable(){
-  return await prisma.$queryRaw`
-  SELECT * FROM "Order"`;
-}
-
-async function getOrderItemsTable(){
-  return await prisma.$queryRaw`
-  SELECT * FROM "OrderItem"`;
-}
-
-async function getTransactionsTable(){
-  return await prisma.$queryRaw`
-  SELECT * FROM "TransactionRecord"`
-  }
-
-async function getUserPurchases() {
-  return await prisma.$queryRaw`
-    SELECT  u.id as id,
-            u.name as username,
-            u.email as email,
-            o."createdAt" as "createdAt",
-            o.total as total,
-            o.id as "orderId",
-            oi.id as "itemId",
-            oi."itemName" as item
-    FROM "User" u
-    JOIN "Order" o ON o."userId" = u.id
-    JOIN "OrderItem" oi ON o.id = oi."orderId"
-    
-    ORDER BY o."createdAt"
-  `
 }
 
 async function getUserTransactionHistory(usersid) {
@@ -566,40 +396,21 @@ async function getUserTransactionHistory(usersid) {
       ON u.id = t."userId"
     WHERE u.id = ${usersid}
     ORDER BY t."createdAt"
-  `
+  `;
 }
-
-
-
 
 module.exports = {
-    createUser,
-    updateUserPassword,
-    getUserById,
-    getUserByEmail,
-    getAllUsers, 
-    submitCart,
-    getUsersLastOrder,
-    getAllUserOrders,
-    deleteLastOrder,
-    getTodaysOrders,
-    createPasswordResetToken, 
-    consumePasswordResetToken,
-    insertTransactions,
-    getUserBalance,
-    addAllStartingBalances,
-    assignTransactionToUser,
-    getUnmatchedDeposits,
-    updateTransactionRecords,
-    getUserTransactions,
-    mapBankNames,
-    getUserBalances,
-    getUserTable,
-    getOrderTable,
-    getOrderItemsTable,
-    getTransactionsTable,
-    getUserPurchases,
-    getUserTransactionHistory
-  
- 
-}
+  createUser,
+  updateUserPassword,
+  getUserById,
+  getUserByEmail,
+  submitCart,
+  getUsersLastOrder,
+  getAllUserOrders,
+  deleteLastOrder,
+  getTodaysOrders,
+  createPasswordResetToken,
+  consumePasswordResetToken,
+  getUserBalance,
+  getUserTransactions,
+};
