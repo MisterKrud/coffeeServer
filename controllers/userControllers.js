@@ -126,7 +126,7 @@ const getUserBalance = async (req, res, next) => {
 
 const getUserTransactionHistory = async(req, res, next) => {
     try{
-        const userTransactionHistory = await db.getUserTransactionHistory(Number(req.user.id))
+        const userTransactionHistory = await db.getUserTransactions(Number(req.user.id))
         res.json(userTransactionHistory)
     } catch(err) {
         next(err)
