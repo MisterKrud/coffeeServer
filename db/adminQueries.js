@@ -1,4 +1,7 @@
 const prisma = require("../lib/prisma.js");
+const { queries } = require("./queries.js");
+
+
 
 async function getAllUsers() {
   return await prisma.user.findMany();
@@ -121,6 +124,8 @@ async function removeOrderFromDataBase(orderId) {
 }
 
 
+
+
 async function getUserBalances() {
   return await prisma.$queryRaw`
     SELECT u.id,
@@ -182,21 +187,21 @@ async function getUserPurchases() {
 
 
 //probably not needed
-// async function getUserTransactionHistory(usersid) {
-//   return await prisma.$queryRaw`
-//     SELECT  u.id as "userId",
-//             u.name as username,
-//             u.email as email,
-//             t.type as "transactionType",
-//             t.amount as amount,
-//             t."createdAt" as timedate
-//     FROM "User" u
-//     JOIN "TransactionRecord" t 
-//       ON u.id = t."userId"
-//     WHERE u.id = ${usersid}
-//     ORDER BY t."createdAt"
-//   `;
-// }
+async function getUserTransactionHistory(usersid) {
+  return await prisma.$queryRaw`
+    SELECT  u.id as "userId",
+            u.name as username,
+            u.email as email,
+            t.type as "transactionType",
+            t.amount as amount,
+            t."createdAt" as timedate
+    FROM "User" u
+    JOIN "TransactionRecord" t 
+      ON u.id = t."userId"
+    WHERE u.id = ${usersid}
+    ORDER BY t."createdAt"
+  `;
+}
 
 module.exports = {
   getAllUsers, //
@@ -212,7 +217,8 @@ module.exports = {
   getTransactionsTable,
   getUserPurchases,
   getUserBalances,
- // getUserTransactionHistory,
+ getUserTransactionHistory,
   getTransactionHistory,
-  removeOrderFromDataBase
+  removeOrderFromDataBase,
+ 
 };

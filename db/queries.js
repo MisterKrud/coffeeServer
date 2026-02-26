@@ -372,7 +372,7 @@ async function addUserBalanceToTable(userId) {
   });
 }
 
-async function getUserTransactions(userId) {
+async function getUserTransactions(userId) {console.log('--------------------')
   return await prisma.transactionRecord.findMany({
     where: {
       userId: userId,

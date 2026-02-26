@@ -1,15 +1,17 @@
-require("dotenv").config();
-const db = require("../db/adminQueries");
+require('dotenv').config();
+const db = require('../db/adminQueries');
+const queries = require('../db/queries')
 const multer = require('multer');
-const Papa = require("papaparse")
+const Papa = require('papaparse')
 const { generateBankFingerPrint } = require('../utils/bankImport');
 
 const { default: next } = require("next");
+const { useDeferredValue } = require('react');
 
 
 const isAdmin = async(req, res, next) => {
 
-    console.log('admin status:', req.user)
+   
         if(!req.user) return res.sendStatus(401);
        if (!req.user.isAdmin) return res.sendStatus(403)
             next()
@@ -20,7 +22,7 @@ const isAdmin = async(req, res, next) => {
 const getAllUsers= async(req, res, next) => {
    try{ const allUsers = await db.getAllUsers();
     req.allUsers = allUsers;
-    console.log('all users', allUsers)
+   
      res.json(allUsers)
     next()
    } catch(err) {
@@ -33,9 +35,9 @@ const getAllUsers= async(req, res, next) => {
 const getTodaysOrders = async(req, res, next) => {
    try{
     const todaysOrders = await db.getTodaysOrders()
-    console.log(todaysOrders)
+  
    req.todaysOrders =   todaysOrders
-   console.log(req.todaysOrders)
+  
     res.json(todaysOrders)
     next()
    }
@@ -112,11 +114,11 @@ const uploadCsvController = async (req, res, next) => {
 
     // Auto-assign using substring matching
     const mappings = await db.mapBankNames();
-   console.log('running auto assignment')
+  
     for (const mapping of mappings) {
      
      await db.updateTransactionRecords(mapping)
-      console.log(`Mapping "${mapping.bankName}" updated ${results.count} rows`);
+     
     }
 
     res.json({ insertedCount: transactionsToInsert.length });
@@ -131,7 +133,7 @@ const uploadCsvController = async (req, res, next) => {
 const assignTransactionToUser = async (req, res, next) => {
   try {
     const { transactionId, userId, bankName } = req.body;
-    console.log(transactionId, userId, bankName)
+   
     if (!transactionId || !userId || !bankName) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -156,16 +158,20 @@ const getUnmatchedDeposits = async(req, res, next) => {
 }
 
 const getUserTransactions =  async(req, res, next) => {
+    try{
     const {userId} = req.query
-    const userTransactions = await db.getUserTransactions(userId);
+    console.log(userId)
+    const userTransactions = await queries.getUserTransactions(Number(userId));
     res.json(userTransactions);
-    next()
+    } catch(err) {
+    next(err)
+    }
 }
 
 const getUserBalance = async (req, res, next) => {
     try{
          const {userId} = req.query
-      const balance =  await db.getUserBalance(Number(userId))
+      const balance =  await queries.getUserBalance(Number(userId))
       console.log(balance)
         res.json(balance)
     } catch(err){
@@ -175,7 +181,7 @@ const getUserBalance = async (req, res, next) => {
 
 const getUserBalances = async (req, res, next) => {
     const userBalances = await db.getUserBalances()
-    console.log('user balances', userBalances)
+  
     res.json(userBalances)
     next()
 }
@@ -240,6 +246,11 @@ const getTransactionHistory = async (req, res, next) => {
         next(err)
     }
 }
+
+
+
+
+
 
 const removeOrderFromDataBase = async(req, res, next) => {
     try{
