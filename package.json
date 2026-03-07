@@ -28,7 +28,6 @@
     "axios": "^1.13.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
-    "curl": "^0.1.4",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.3",
@@ -43,9 +42,14 @@
     "papaparse": "^5.5.3",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "pg": "^8.17.2"
+    "pg": "^8.17.2",
+    "resend": "^6.9.3"
   },
   "devDependencies": {
-    "prisma": "^7.3.0"
-  }
+    "prisma": "^7.4.2"
+  },
+  "overrides": {
+  "hono": "^4.12.4",
+  "@hono/node-server": "^1.19.10"
+}
 }
