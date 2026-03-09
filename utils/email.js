@@ -3,7 +3,7 @@ const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendResetEmail(to, token) {
-  const resetLink = `${process.env.FRONTEND_URL}reset-password?token=${token}`;
+  const resetLink = `https://https://coffee-orders-five.vercel.app/reset-password?token=${token}`;
 
   await resend.emails.send({
     from: "Cafe Orders <password-reset@dsode.cafe>",
