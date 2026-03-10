@@ -3,6 +3,7 @@ const { Resend } = require("resend");
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendResetEmail(to, token) {
+  //use vercel url - det rejects other domain
   const resetLink = `https://https://coffee-orders-five.vercel.app/reset-password?token=${token}`;
 
   await resend.emails.send({
